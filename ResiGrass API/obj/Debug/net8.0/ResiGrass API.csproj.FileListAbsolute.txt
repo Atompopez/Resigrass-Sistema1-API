@@ -1,0 +1,45 @@
+C:\Users\david\source\repos\ResiGrass API\ResiGrass API\bin\Debug\net8.0\appsettings.Development.json
+C:\Users\david\source\repos\ResiGrass API\ResiGrass API\bin\Debug\net8.0\appsettings.json
+C:\Users\david\source\repos\ResiGrass API\ResiGrass API\bin\Debug\net8.0\ResiGrass API.exe
+C:\Users\david\source\repos\ResiGrass API\ResiGrass API\bin\Debug\net8.0\ResiGrass API.deps.json
+C:\Users\david\source\repos\ResiGrass API\ResiGrass API\bin\Debug\net8.0\ResiGrass API.runtimeconfig.json
+C:\Users\david\source\repos\ResiGrass API\ResiGrass API\bin\Debug\net8.0\ResiGrass API.dll
+C:\Users\david\source\repos\ResiGrass API\ResiGrass API\bin\Debug\net8.0\ResiGrass API.pdb
+C:\Users\david\source\repos\ResiGrass API\ResiGrass API\bin\Debug\net8.0\Microsoft.OpenApi.dll
+C:\Users\david\source\repos\ResiGrass API\ResiGrass API\bin\Debug\net8.0\Swashbuckle.AspNetCore.Swagger.dll
+C:\Users\david\source\repos\ResiGrass API\ResiGrass API\bin\Debug\net8.0\Swashbuckle.AspNetCore.SwaggerGen.dll
+C:\Users\david\source\repos\ResiGrass API\ResiGrass API\bin\Debug\net8.0\Swashbuckle.AspNetCore.SwaggerUI.dll
+C:\Users\david\source\repos\ResiGrass API\ResiGrass API\obj\Debug\net8.0\ResiGrass API.csproj.AssemblyReference.cache
+C:\Users\david\source\repos\ResiGrass API\ResiGrass API\obj\Debug\net8.0\ResiGrass API.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\david\source\repos\ResiGrass API\ResiGrass API\obj\Debug\net8.0\ResiGrass API.AssemblyInfoInputs.cache
+C:\Users\david\source\repos\ResiGrass API\ResiGrass API\obj\Debug\net8.0\ResiGrass API.AssemblyInfo.cs
+C:\Users\david\source\repos\ResiGrass API\ResiGrass API\obj\Debug\net8.0\ResiGrass API.csproj.CoreCompileInputs.cache
+C:\Users\david\source\repos\ResiGrass API\ResiGrass API\obj\Debug\net8.0\ResiGrass API.MvcApplicationPartsAssemblyInfo.cs
+C:\Users\david\source\repos\ResiGrass API\ResiGrass API\obj\Debug\net8.0\ResiGrass API.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\david\source\repos\ResiGrass API\ResiGrass API\obj\Debug\net8.0\staticwebassets.build.json
+C:\Users\david\source\repos\ResiGrass API\ResiGrass API\obj\Debug\net8.0\staticwebassets.development.json
+C:\Users\david\source\repos\ResiGrass API\ResiGrass API\obj\Debug\net8.0\staticwebassets\msbuild.ResiGrass API.Microsoft.AspNetCore.StaticWebAssets.props
+C:\Users\david\source\repos\ResiGrass API\ResiGrass API\obj\Debug\net8.0\staticwebassets\msbuild.build.ResiGrass API.props
+C:\Users\david\source\repos\ResiGrass API\ResiGrass API\obj\Debug\net8.0\staticwebassets\msbuild.buildMultiTargeting.ResiGrass API.props
+C:\Users\david\source\repos\ResiGrass API\ResiGrass API\obj\Debug\net8.0\staticwebassets\msbuild.buildTransitive.ResiGrass API.props
+C:\Users\david\source\repos\ResiGrass API\ResiGrass API\obj\Debug\net8.0\staticwebassets.pack.json
+C:\Users\david\source\repos\ResiGrass API\ResiGrass API\obj\Debug\net8.0\scopedcss\bundle\ResiGrass API.styles.css
+C:\Users\david\source\repos\ResiGrass API\ResiGrass API\obj\Debug\net8.0\ResiGras.DBF8DF94.Up2Date
+C:\Users\david\source\repos\ResiGrass API\ResiGrass API\obj\Debug\net8.0\ResiGrass API.dll
+C:\Users\david\source\repos\ResiGrass API\ResiGrass API\obj\Debug\net8.0\refint\ResiGrass API.dll
+C:\Users\david\source\repos\ResiGrass API\ResiGrass API\obj\Debug\net8.0\ResiGrass API.pdb
+C:\Users\david\source\repos\ResiGrass API\ResiGrass API\obj\Debug\net8.0\ResiGrass API.genruntimeconfig.cache
+C:\Users\david\source\repos\ResiGrass API\ResiGrass API\obj\Debug\net8.0\ref\ResiGrass API.dll
+C:\Users\david\source\repos\ResiGrass API\ResiGrass API\bin\Debug\net8.0\Microsoft.EntityFrameworkCore.dll
+C:\Users\david\source\repos\ResiGrass API\ResiGrass API\bin\Debug\net8.0\Microsoft.EntityFrameworkCore.Abstractions.dll
+C:\Users\david\source\repos\ResiGrass API\ResiGrass API\bin\Debug\net8.0\Microsoft.EntityFrameworkCore.Relational.dll
+C:\Users\david\source\repos\ResiGrass API\ResiGrass API\bin\Debug\net8.0\Npgsql.dll
+C:\Users\david\source\repos\ResiGrass API\ResiGrass API\bin\Debug\net8.0\Npgsql.EntityFrameworkCore.PostgreSQL.dll
+C:\Users\david\source\repos\ResiGrass API\ResiGrass API\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+C:\Users\david\source\repos\ResiGrass API\ResiGrass API\bin\Debug\net8.0\Microsoft.IdentityModel.Abstractions.dll
+C:\Users\david\source\repos\ResiGrass API\ResiGrass API\bin\Debug\net8.0\Microsoft.IdentityModel.JsonWebTokens.dll
+C:\Users\david\source\repos\ResiGrass API\ResiGrass API\bin\Debug\net8.0\Microsoft.IdentityModel.Logging.dll
+C:\Users\david\source\repos\ResiGrass API\ResiGrass API\bin\Debug\net8.0\Microsoft.IdentityModel.Protocols.dll
+C:\Users\david\source\repos\ResiGrass API\ResiGrass API\bin\Debug\net8.0\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
+C:\Users\david\source\repos\ResiGrass API\ResiGrass API\bin\Debug\net8.0\Microsoft.IdentityModel.Tokens.dll
+C:\Users\david\source\repos\ResiGrass API\ResiGrass API\bin\Debug\net8.0\System.IdentityModel.Tokens.Jwt.dll
