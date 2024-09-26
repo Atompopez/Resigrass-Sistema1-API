@@ -1,19 +1,19 @@
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+# Use .NET 8.0 SDK to build the app
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS build-env
 WORKDIR /app
-EXPOSE 80
 
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-WORKDIR /src
-COPY ["Resigrass-Sistema1-API/ResiGrass-API.csproj", "Resigrass-Sistema1-API/"]
-RUN dotnet restore "Resigrass-Sistema1-API/ResiGrass-API.csproj"
-COPY . .
-WORKDIR "/src/Resigrass-Sistema1-API"
-RUN dotnet build "ResiGrass-API.csproj" -c Release -o /app/build
+# Copy project files and restore dependencies
+COPY /ResiGrass API/*.csproj ./
+RUN dotnet restore
 
-FROM build AS publish
-RUN dotnet publish "ResiGrass-API.csproj" -c Release -o /app/publish
+# Copy the rest of the app and publish in Release mode
+COPY /ResiGrass API/. ./
+RUN dotnet publish -c Release -o out
 
-FROM base AS final
+# Use .NET 8.0 runtime to run the app
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
-COPY --from=publish /app/publish .
+
+# Copy the published output and set the entry point
+COPY --from=build-env /app/out .
 ENTRYPOINT ["dotnet", "ResiGrass-API.dll"]
