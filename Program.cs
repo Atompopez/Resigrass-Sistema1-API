@@ -63,18 +63,22 @@ builder.Services.AddSwaggerGen(c =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.UseRouting(); 
 
-app.UseHttpsRedirection();
-
-// Agrega la autenticación
+// Agrega la autenticación y autorización
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.UseSwagger(); // Habilitar Swagger
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "ResiGrass API V1");
+    c.RoutePrefix = string.Empty;
+});
+
+
 app.MapControllers();
+
+
 app.Urls.Add("http://0.0.0.0:5023");
 app.Run();
