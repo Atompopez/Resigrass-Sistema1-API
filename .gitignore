@@ -5,6 +5,7 @@ obj/
 # Ignore .vs folder (Visual Studio working directory)
 .vs/
 .vscode/
+*.sln
 
 # Ignore user-specific files
 *.user
