@@ -1,3 +1,0 @@
-﻿<Project>
-  <Import Project="..\build\ResiGrass API.props" />
-</Project>

@@ -1,0 +1,55 @@
+# Ignore build outputs
+bin/
+obj/
+
+# Ignore .vs folder (Visual Studio working directory)
+.vs/
+.vscode/
+
+# Ignore user-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Ignore IDE-specific folders
+.idea/
+
+# Xamarin/MAUI/Android specific
+# Ignore Android build output
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+*.jar
+*.apk.idsig
+*.apk.asc
+*.keystore
+.DS_Store
+
+# JetBrains Rider specific
+.idea/
+.idea/*
+
+# Generated files and packages
+*.dll
+*.exe
+*.pdb
+*.mdb
+*.cache
+*.ilk
+*.lib
+*.nupkg
+*.snk
+*.log
+
+# NuGet package directories
+# Ignore directories with NuGet packages
+packages/
+project.lock.json
+project.fragment.lock.json
+
+# macOS files
+*.DS_Store
+*.AppleDouble
