@@ -1,19 +1,19 @@
-# Use .NET 8.0 SDK to build the app
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS build-env
+# Usar .NET 8.0 SDK para construir la aplicación
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-env
 WORKDIR /app
 
-# Copy project files and restore dependencies
-COPY ResiGrass-API/*.csproj ./
+# Copiar el archivo del proyecto y restaurar las dependencias
+COPY ./ResiGrass-API.csproj ./
 RUN dotnet restore
 
-# Copy the rest of the app and publish in Release mode
-COPY ResiGrass-API/. ./
+# Copiar el resto de la aplicación y publicarla en modo Release
+COPY . ./
 RUN dotnet publish -c Release -o out
 
-# Use .NET 8.0 runtime to run the app
+# Usar .NET 8.0 runtime para ejecutar la aplicación
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
 
-# Copy the published output and set the entry point
-COPY --from=build-env /app/out .
+# Copiar la salida publicada y establecer el punto de entrada
+COPY --from=build-env /app/out ./
 ENTRYPOINT ["dotnet", "ResiGrass-API.dll"]
