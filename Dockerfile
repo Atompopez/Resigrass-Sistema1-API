@@ -3,7 +3,7 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-env
 WORKDIR /app
 
 # Copiar los archivos del proyecto y restaurar las dependencias
-COPY ./ResiGrass-api.csproj ./
+COPY ./ResiGrass-API.csproj ./
 RUN dotnet restore
 
 # Copiar el resto de la aplicación y publicarla en modo Release
@@ -16,4 +16,4 @@ WORKDIR /app
 
 # Copiar la salida publicada y establecer el punto de entrada
 COPY --from=build-env /app/out ./
-ENTRYPOINT ["dotnet", "ResiGrass-api.dll"]
+ENTRYPOINT ["dotnet", "ResiGrass-API.dll"]
