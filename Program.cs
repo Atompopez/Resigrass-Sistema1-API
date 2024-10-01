@@ -72,5 +72,5 @@ app.UseAuthorization();
 
 app.UseHttpsRedirection();
 app.MapControllers();
-app.Urls.Add("http://0.0.0.0:5023");
+app.Urls.Add("https://0.0.0.0:5023");
 app.Run();
