@@ -12,38 +12,22 @@ ResiGrass_API.Logic.Globals.Initialize(builder.Configuration);
 // Asegúrate de que la clase DbQuery esté en el espacio de nombres correcto
 builder.Services.AddSingleton<DbQuery>(new DbQuery(ResiGrass_API.Logic.Globals.ConnectionString));
 
-// Configuración de la autenticación JWT
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-}).AddJwtBearer(options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        ValidIssuer = "api.santiago.com",
-        ValidAudience = "api.resigrass.com",
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("G8j!q%Z7pT@x$3Rw^eY&f2*BnL9k#4Hs"))
-    };
-});
-
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "ResiGrass API", Version = "v1" });
+    c.SwaggerDoc("v1", new() { Title = "API_SUIP_Link", Version = "v1" });
+
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        In = ParameterLocation.Header,
-        Description = "Ingrese el token JWT en este formato: Bearer {token}",
+        Description = "JWT Authorization",
         Name = "Authorization",
-        Type = SecuritySchemeType.ApiKey
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer"
     });
+
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
@@ -55,30 +39,34 @@ builder.Services.AddSwaggerGen(c =>
                     Id = "Bearer"
                 }
             },
-            new string[] {}
+            new string[] { }
         }
     });
 });
 
-var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-app.UseRouting(); 
-
-// Agrega la autenticación y autorización
-app.UseAuthentication();
-app.UseAuthorization();
-
-app.UseSwagger(); // Habilitar Swagger
-app.UseSwaggerUI(c =>
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "ResiGrass API V1");
-    c.RoutePrefix = string.Empty;
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+    };
 });
 
+var app = builder.Build();
 
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+app.UseHttpsRedirection();
+app.UseAuthorization();
 app.MapControllers();
-
-
-app.Urls.Add("http://0.0.0.0:5023");
 app.Run();

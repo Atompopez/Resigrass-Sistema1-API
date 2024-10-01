@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using ResiGrass_API.Models;
@@ -12,6 +13,10 @@ namespace ResiGrass_API.Controllers
     [Route("[controller]")]
     public class AuthController : ControllerBase
     {
+        private IConfiguration _configuration = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json")
+                .Build();
+
         // Este endpoint se usa para autenticar y obtener un token
         [HttpPost("login")]
         public IActionResult Login([FromBody] UserCredentials credentials)
@@ -35,25 +40,28 @@ namespace ResiGrass_API.Controllers
         // Método para generar el token JWT
         private string GenerateJwtToken(string username)
         {
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("G8j!q%Z7pT@x$3Rw^eY&f2*BnL9k#4Hs"));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var jwt = _configuration.GetSection("Jwt").Get<JWT>();
 
             var claims = new[]
             {
-                new Claim(JwtRegisteredClaimNames.Sub, username),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-            };
+                    new Claim(JwtRegisteredClaimNames.Sub, jwt.Subject),
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                    new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString()),
+                    new Claim("Username", username)
+                };
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.Key));
+            var singIn = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
-                issuer: "api.santiago.com",
-                audience: "api.resigrass.com",
-                claims: claims,
-                expires: DateTime.Now.AddHours(1),
-                signingCredentials: creds);
+                jwt.Issuer,
+                jwt.Audience,
+                claims,
+                expires: DateTime.Now.AddDays(1),
+                signingCredentials: singIn
+            );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
-
     }
-
 }

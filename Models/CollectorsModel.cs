@@ -1,13 +1,39 @@
 ﻿namespace ResiGrass_API.Models
 {
+
     public class CollectorsModel
     {
+
         public int id { get; set; }
-        TypeCollectorsModel? typeCollectorsModelId { get; set; }
-        LoginCollectorModel? loginCollectorModelId { get; set; }
+        public TypeCollectorsModel? typeCollectorsModelId { get; set; }
+        public loginCollectorModel? loginCollectorModelId { get; set; }
         public required string nameCollector {  get; set; }
-        public required int numberPhoneCollector { get; set; }
+        public required string numberPhoneCollector { get; set; }
         public required bool status {  get; set; }
+        public required int loginCollectorId { get; set; }
+        public required int typeCollectorId { get; set; }
+        public required DateTime dateCreationCollector { get; set; }
 
     }
+    public class CollectorModelInsert
+    {
+
+        public required string nameCollector { get; set; }
+        public required string numberPhoneCollector { get; set; }
+        public required bool status { get; set; }
+        public  int loginCollectorId { get; set; }
+        public required int typeCollectorId { get; set; }
+        public required DateTime dateCreationCollector { get; set; }
+
+
+    }
+
+
+
+    public class CollectorRequestModel
+    {
+        public CollectorModelInsert CollectorModel { get; set; }
+        public loginCreationCollectorModel LoginCollectorModel { get; set; }
+    }
+
 }

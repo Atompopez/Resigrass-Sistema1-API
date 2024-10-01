@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using ResiGrass_API.Logic;
 using ResiGrass_API.Models;
 using System.Collections.Generic;
@@ -18,6 +19,7 @@ namespace ResiGrass_API.Controllers
         }
 
         [HttpGet("Municipalities")]
+        [Authorize(AuthenticationSchemes = "Bearer")]
         public IActionResult GetMunicipalities()
         {
             var municipalities = _dbQuery.GetMunicipalities();

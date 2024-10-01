@@ -1,5 +1,10 @@
 ﻿using Npgsql;
 using ResiGrass_API.Models;
+using System.Text;
+using System.Security.Cryptography;
+using System.Collections;
+
+
 
 namespace ResiGrass_API.Logic
 {
@@ -603,7 +608,7 @@ namespace ResiGrass_API.Logic
         #region HeadQuarterUpdate
         public List<HeadQuartersModelCreation> HeadQuarterUpdate(HeadQuartersModelCreation headQuarterModel, int idClient)
         {
-            var headQuarters = new List<HeadQuartersModelCreation>(); 
+            var headQuarters = new List<HeadQuartersModelCreation>();
 
             try
             {
@@ -631,8 +636,8 @@ namespace ResiGrass_API.Logic
                         cmd.Parameters.AddWithValue("@nameHeadquarter", headQuarterModel.nameHeadquarter);
                         cmd.Parameters.AddWithValue("@numberPhone", headQuarterModel.numberPhone);
                         cmd.Parameters.AddWithValue("@address", headQuarterModel.address);
-                        cmd.Parameters.AddWithValue("@dateCreationHeadquarter", DateTime.Now); 
-                        cmd.Parameters.Add("@status", NpgsqlTypes.NpgsqlDbType.Bit).Value = headQuarterModel.status ? (object)true : (object)false; 
+                        cmd.Parameters.AddWithValue("@dateCreationHeadquarter", DateTime.Now);
+                        cmd.Parameters.Add("@status", NpgsqlTypes.NpgsqlDbType.Bit).Value = headQuarterModel.status ? (object)true : (object)false;
                         cmd.Parameters.AddWithValue("@clientId", headQuarterModel.clientId);
                         cmd.Parameters.AddWithValue("@localityId", headQuarterModel.localityId);
 
@@ -659,11 +664,485 @@ namespace ResiGrass_API.Logic
             catch (Exception ex)
             {
                 Console.WriteLine($"Error al actualizar la sede: {ex.Message}");
-                return new List<HeadQuartersModelCreation>(); 
+                return new List<HeadQuartersModelCreation>();
             }
-            return headQuarters; 
+            return headQuarters;
         }
 
         #endregion
+
+        #region Measures
+        public List<MeasuresModel> GetMeasures()
+        {
+            var Measures = new List<MeasuresModel>();
+
+            try
+            {
+                using (var conn = new NpgsqlConnection(_connectionString))
+                {
+                    conn.Open();
+                    string query;
+
+                    query = "select * from measure";
+
+
+                    using (var cmd = new NpgsqlCommand(query, conn))
+                    {
+
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                if (!reader.IsDBNull(0) && !reader.IsDBNull(1) && !reader.IsDBNull(2) && !reader.IsDBNull(3))
+                                {
+                                    var measure = new MeasuresModel
+                                    {
+                                        id = reader.GetInt32(0),
+                                        descriptionMeasures = reader.GetString(1),
+                                        abbreviation = reader.GetString(2),
+                                        status = reader.GetBoolean(3),
+
+                                    };
+
+                                    Measures.Add(measure);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al obtener los tipos de negocio: {ex}");
+                return new List<MeasuresModel>();
+            }
+
+            return Measures;
+        }
+
+        #endregion
+
+        #region MethodPayment
+        public List<MethodPaymentModel> GetMethodPayment()
+        {
+            var MethodPayment = new List<MethodPaymentModel>();
+
+            try
+            {
+                using (var conn = new NpgsqlConnection(_connectionString))
+                {
+                    conn.Open();
+                    string query;
+
+                    query = "select * from \"methodPayment\"";
+
+
+                    using (var cmd = new NpgsqlCommand(query, conn))
+                    {
+
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                if (!reader.IsDBNull(0) && !reader.IsDBNull(1) && !reader.IsDBNull(2))
+                                {
+                                    var methodpayment = new MethodPaymentModel
+                                    {
+                                        id = reader.GetInt32(0),
+                                        descriptionPayment = reader.GetString(1),
+                                        status = reader.GetBoolean(2),
+
+                                    };
+
+                                    MethodPayment.Add(methodpayment);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al obtener los métodos de pago: {ex}");
+                return new List<MethodPaymentModel>();
+            }
+
+            return MethodPayment;
+        }
+
+        #endregion
+
+        #region Products
+        public List<ProductsModel> GetProducts()
+        {
+            var Products = new List<ProductsModel>();
+
+            try
+            {
+                using (var conn = new NpgsqlConnection(_connectionString))
+                {
+                    conn.Open();
+                    string query;
+
+                    query = "select * from \"product\"";
+
+
+                    using (var cmd = new NpgsqlCommand(query, conn))
+                    {
+
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                if (!reader.IsDBNull(0) && !reader.IsDBNull(1) && !reader.IsDBNull(2))
+                                {
+                                    var products = new ProductsModel
+                                    {
+                                        id = reader.GetInt32(0),
+                                        descriptionProduct = reader.GetString(1),
+                                        abbreviation = reader.GetString(2),
+                                        status = reader.GetBoolean(3),
+
+                                    };
+
+                                    Products.Add(products);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al obtener los productos: {ex}");
+                return new List<ProductsModel>();
+            }
+
+            return Products;
+        }
+
+        #endregion
+
+        #region TypeCollector
+        public List<TypeCollectorsModel> GetTypeCollectors()
+        {
+            var typeCollectors = new List<TypeCollectorsModel>();
+
+            try
+            {
+                using (var conn = new NpgsqlConnection(_connectionString))
+                {
+                    conn.Open();
+                    string query;
+
+                    query = "select * from \"typeCollector\"";
+
+
+                    using (var cmd = new NpgsqlCommand(query, conn))
+                    {
+
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                if (!reader.IsDBNull(0) && !reader.IsDBNull(1) && !reader.IsDBNull(2))
+                                {
+                                    var typecollectors = new TypeCollectorsModel
+                                    {
+                                        id = reader.GetInt32(0),
+                                        descriptionCollector = reader.GetString(1),
+                                        status = reader.GetBoolean(2),
+
+                                    };
+
+                                    typeCollectors.Add(typecollectors);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al obtener tipo de recolector: {ex}");
+                return new List<TypeCollectorsModel>();
+            }
+
+            return typeCollectors;
+        }
+
+        #endregion
+
+        #region CollectorCreation
+        public List<CollectorModelInsert> InsertCollector(CollectorModelInsert collectorModel, loginCreationCollectorModel loginCollectorModel)
+        {
+            var collectors = new List<CollectorModelInsert>();
+
+            try
+            {
+                using (var conn = new NpgsqlConnection(_connectionString))
+                {
+                    conn.Open();
+
+                    // Primero insertar en la tabla loginCollector
+                    string queryLogin = @"
+            INSERT INTO resigrass.""loginCollector"" (""user"", ""password"", ""status"")
+            VALUES (@user, @password, @status)
+            RETURNING id";
+
+                    int loginCollectorId;
+
+                    using (var cmdLogin = new NpgsqlCommand(queryLogin, conn))
+                    {
+                        // Hash de la contraseña antes de la inserción
+                        string hashedPassword = HashPassword(loginCollectorModel.password);
+
+                        cmdLogin.Parameters.AddWithValue("@user", loginCollectorModel.user);
+                        cmdLogin.Parameters.AddWithValue("@password", hashedPassword); // Usar la contraseña hasheada                                                                                      
+                        var statusBit = loginCollectorModel.status ? new BitArray(new[] { true }) : new BitArray(new[] { false });
+
+                        // Asignar el valor del parámetro como un array de bits
+                        cmdLogin.Parameters.AddWithValue("@status", statusBit);
+
+
+
+                        // Obtener el id generado
+                        loginCollectorId = (int)cmdLogin.ExecuteScalar();
+                    }
+
+                    // Ahora insertar en la tabla collector usando el loginCollectorId
+                    string queryCollector = @"
+            INSERT INTO resigrass.collector (""nameCollector"", ""numberPhoneCollector"", ""dateCreationCollector"", ""status"", ""loginCollectorId"", ""typeCollectorId"")
+            VALUES (@nameCollector, @numberPhoneCollector, @dateCreationCollector, @status, @loginCollectorId, @typeCollectorId)
+            RETURNING *";
+
+                    using (var cmdCollector = new NpgsqlCommand(queryCollector, conn))
+                    {
+                        cmdCollector.Parameters.AddWithValue("@nameCollector", collectorModel.nameCollector);
+                        cmdCollector.Parameters.AddWithValue("@numberPhoneCollector", collectorModel.numberPhoneCollector);
+                        cmdCollector.Parameters.AddWithValue("@dateCreationCollector", DateTime.Now);
+                        var statusBit = loginCollectorModel.status ? new BitArray(new[] { true }) : new BitArray(new[] { false });
+                        cmdCollector.Parameters.AddWithValue("@status", statusBit);
+                        cmdCollector.Parameters.AddWithValue("@loginCollectorId", loginCollectorId);
+                        cmdCollector.Parameters.AddWithValue("@typeCollectorId", collectorModel.typeCollectorId);
+
+                        using (var reader = cmdCollector.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                var collector = new CollectorModelInsert
+                                {
+                                    nameCollector = reader.GetString(1),
+                                    numberPhoneCollector = reader.GetString(2),
+                                    dateCreationCollector = reader.GetDateTime(3),
+                                    status = reader.GetBoolean(4),
+                                    loginCollectorId = reader.GetInt32(5),
+                                    typeCollectorId = reader.GetInt32(6)
+                                };
+                                collectors.Add(collector);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al insertar el recolector: {ex.Message}");
+                return new List<CollectorModelInsert>();
+            }
+
+            return collectors;
+        }
+
+        // Función para hashear la contraseña
+        private string HashPassword(string password)
+        {
+            using (SHA256 sha256 = SHA256.Create())
+            {
+                byte[] bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
+                StringBuilder builder = new StringBuilder();
+                foreach (byte b in bytes)
+                {
+                    builder.Append(b.ToString("x2"));
+                }
+                return builder.ToString();
+            }
+        }
+        #endregion
+
+        #region CollectorLoginGet
+        public LoginResponse CollectorLoginGet(loginCreationCollectorModelValidate LoginCollector)
+        {
+            var response = new LoginResponse();
+
+            try
+            {
+                using (var conn = new NpgsqlConnection(_connectionString))
+                {
+                    conn.Open();
+
+
+                    string queryCheckUser = "SELECT * FROM \"loginCollector\" WHERE \"user\" = @user";
+                    using (var cmdCheckUser = new NpgsqlCommand(queryCheckUser, conn))
+                    {
+                        cmdCheckUser.Parameters.AddWithValue("@user", LoginCollector.user);
+
+                        using (var reader = cmdCheckUser.ExecuteReader())
+                        {
+                            if (!reader.Read()) 
+                            {
+                                response.Success = false;
+                                response.Message = "El usuario no existe.";
+                                return response;
+                            }
+
+                            var storedPassword = reader.GetString(reader.GetOrdinal("password"));
+                            var storedStatus = reader.GetBoolean(reader.GetOrdinal("status"));
+
+                            reader.Close();
+
+
+                            string hashedInputPassword = HashPassword(LoginCollector.password);
+                            if (hashedInputPassword != storedPassword)
+                            {
+                                response.Success = false;
+                                response.Message = "La contraseña es incorrecta.";
+                                return response;
+                            }
+
+                            string queryCollector = @"
+                    SELECT c.*, tc.id, tc.""descriptionCollector"", tc.status, lc.id, lc.user, lc.password, lc.status
+                    FROM collector c
+                    INNER JOIN ""typeCollector"" tc ON c.""typeCollectorId"" = tc.id
+                    INNER JOIN ""loginCollector"" lc ON c.""loginCollectorId"" = lc.id
+                    WHERE lc.""user"" = @user";
+
+                            using (var cmdCollector = new NpgsqlCommand(queryCollector, conn))
+                            {
+                                cmdCollector.Parameters.AddWithValue("@user", LoginCollector.user);
+
+                                using (var collectorReader = cmdCollector.ExecuteReader())
+                                {
+                                    while (collectorReader.Read())
+                                    {
+                                        var collector = new CollectorsModel
+                                        {
+                                            id = collectorReader.GetInt32(0),
+                                            nameCollector = collectorReader.GetString(1),
+                                            numberPhoneCollector = collectorReader.GetString(2),
+                                            dateCreationCollector = collectorReader.GetDateTime(3),
+                                            status = collectorReader.GetBoolean(4),
+                                            loginCollectorId = collectorReader.GetInt32(5),
+                                            typeCollectorId = collectorReader.GetInt32(6),
+                                            typeCollectorsModelId = new TypeCollectorsModel
+                                            {
+                                                id = collectorReader.GetInt32(7),
+                                                descriptionCollector = collectorReader.GetString(8),
+                                                status = collectorReader.GetBoolean(9),
+                                            },
+                                            loginCollectorModelId = new loginCollectorModel
+                                            {
+                                                id = collectorReader.GetInt32(10),
+                                                user = collectorReader.GetString(11),
+                                                password = collectorReader.GetString(12),
+                                                status = collectorReader.GetBoolean(13),
+                                            }
+                                        };
+
+                                        response.Collectors.Add(collector);
+                                    }
+
+                                    response.Success = true;
+                                    response.Message = "Inicio de sesión exitoso.";
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = $"Error al obtener los recolectores: {ex.Message}";
+            }
+
+            return response;
+        }
+
+
+        #endregion
+
+        #region ClientCreation
+        public List<RecolectionModelInsert> InsertCollection(RecolectionModelInsert CollectionModel)
+        {
+            var Collection = new List<RecolectionModelInsert>();
+
+            try
+            {
+                using (var conn = new NpgsqlConnection(_connectionString))
+                {
+                    conn.Open();
+                    string query = @"
+                INSERT INTO collection (""collectedName"", ""receivedDate"", ""endDate"", ""fullPayment"", ""priceUnit"", ""netWeight"",observations,""receivedFull"",""bowlEmpty"",""collectorId"",""headquarterId"",""measureId"",""methodPaymentId"",""productId"")
+                VALUES ( @collectedName, @receivedDate, @endDate, @fullPayment, @priceUnit, @netWeight, @observations, @receivedFull, @bowlEmpty,  @collectorId, @headquarterId, @measureId, @methodPaymentId, @productId)
+                RETURNING *";
+
+                    using (var cmd = new NpgsqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@collectedName", CollectionModel.collectedName);
+                        cmd.Parameters.AddWithValue("@receivedDate", CollectionModel.receivedDate);
+                        cmd.Parameters.AddWithValue("@endDate", DateTime.Now);
+                        cmd.Parameters.AddWithValue("@fullPayment", CollectionModel.fullPayment);
+                        cmd.Parameters.AddWithValue("@priceUnit", CollectionModel.priceUnit);
+                        cmd.Parameters.AddWithValue("@netWeight", CollectionModel.netWeight);
+                        cmd.Parameters.AddWithValue("@observations", CollectionModel.observations);
+                        cmd.Parameters.AddWithValue("@receivedFull", CollectionModel.receivedFull);
+                        cmd.Parameters.AddWithValue("@bowlEmpty", CollectionModel.bowlEmpty);
+                        cmd.Parameters.AddWithValue("@collectorId", CollectionModel.collectorId);
+                        cmd.Parameters.AddWithValue("@headquarterId", CollectionModel.headquarterId);
+                        cmd.Parameters.AddWithValue("@measureId", CollectionModel.measureId);
+                        cmd.Parameters.AddWithValue("@methodPaymentId", CollectionModel.methodPaymentId);
+                        cmd.Parameters.AddWithValue("@productId", CollectionModel.productId);
+
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                var collection = new RecolectionModelInsert
+                                {
+                                    collectedName = reader.GetString(1),
+                                    receivedDate = reader.GetDateTime(2),
+                                    endDate = reader.GetDateTime(3),
+                                    fullPayment = reader.GetFloat(4),
+                                    priceUnit = reader.GetFloat(5),
+                                    netWeight = reader.GetFloat(6),
+                                    observations = reader.GetString(7),
+                                    receivedFull = reader.GetInt32(8),
+                                    bowlEmpty = reader.GetInt32(9),
+                                    collectorId = reader.GetInt32(10),
+                                    headquarterId = reader.GetInt32(11),
+                                    measureId = reader.GetInt32(12),
+                                    methodPaymentId = reader.GetInt32(13),
+                                    productId = reader.GetInt32(14),
+
+                                };
+                                Collection.Add(collection);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al insertar el cliente: {ex.Message}");
+                return new List<RecolectionModelInsert>();
+            }
+
+            return Collection;
+        }
+
+
+        #endregion
     }
+
 }
