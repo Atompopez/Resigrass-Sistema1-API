@@ -18,18 +18,18 @@ namespace ResiGrass_API.Controllers
                 .Build();
 
         // Este endpoint se usa para autenticar y obtener un token
-        [HttpPost("login")]
-        public IActionResult Login([FromBody] UserCredentials credentials)
-        {
-            // Validar las credenciales con valores hardcodeados
-            if (IsValidUser(credentials.Username, credentials.Password))
-            {
-                var token = GenerateJwtToken(credentials.Username);
-                return Ok(new { Token = token });
-            }
+        //[HttpPost("login")]
+        //public IActionResult Login([FromBody] UserCredentials credentials)
+        //{
+        //    // Validar las credenciales con valores hardcodeados
+        //    if (IsValidUser(credentials.Username, credentials.Password))
+        //    {
+        //        var token = GenerateJwtToken(credentials.Username);
+        //        return Ok(new { Token = token });
+        //    }
 
-            return Unauthorized(); // Si las credenciales son incorrectas
-        }
+        //    return Unauthorized(); // Si las credenciales son incorrectas
+        //}
 
         // Método para validar las credenciales (valores hardcodeados)
         private bool IsValidUser(string username, string password)
@@ -38,7 +38,8 @@ namespace ResiGrass_API.Controllers
         }
 
         // Método para generar el token JWT
-        private string GenerateJwtToken(string username)
+        [HttpPost("login")] 
+        public string GenerateJwtToken(string username)
         {
             var jwt = _configuration.GetSection("Jwt").Get<JWT>();
 
