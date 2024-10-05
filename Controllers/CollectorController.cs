@@ -54,20 +54,23 @@ namespace ResiGrass_API.Controllers
             {
                 if (response.Message.Contains("no existe"))
                 {
-                    return NotFound(new { message = response.Message }); // 404 Usuario no encontrado
+                    return NotFound(new { message = response.Message }); 
                 }
                 else if (response.Message.Contains("incorrecta"))
                 {
-                    return Unauthorized(new { message = response.Message }); // 401 Contraseña incorrecta
+                    return Unauthorized(new { message = response.Message }); 
                 }
                 else
                 {
-                    return BadRequest(new { message = response.Message }); // 400 Error en el proceso
+                    return BadRequest(new { message = response.Message }); 
                 }
             }
 
-            // Éxito: Devolver los recolectores y mensaje de éxito
-            return Ok(new { message = response.Message, data = response.Collectors });
+            AuthController Auth = new AuthController();
+            UserCredentials crede = new UserCredentials();
+            crede.Username = "resigrass";
+            string token = Auth.GenerateJwtToken(crede.Username);
+            return Ok(new { message = response.Message, data = response.Collectors, Token = token });
         }
 
 
@@ -79,6 +82,7 @@ namespace ResiGrass_API.Controllers
         {
 
             var client = _dbQuery.InsertCollection(CollectionInsertModel);
+
             return Ok(client);
         }
 
