@@ -18,6 +18,7 @@ namespace ResiGrass_API.Controllers
             _dbQuery = dbQuery;
         }
 
+        #region MunicipalitiesGet
         [HttpGet("Municipalities")]
         [Authorize(AuthenticationSchemes = "Bearer")]
         public IActionResult GetMunicipalities()
@@ -26,13 +27,18 @@ namespace ResiGrass_API.Controllers
             return Ok(municipalities);
         }
 
+        #endregion
+
+        #region Localities
         [HttpPut("{idMunicipality}")]
+        [Authorize(AuthenticationSchemes = "Bearer")]
         public IActionResult Localities(int idMunicipality)
         {
             var localities = _dbQuery.GetLocalities(idMunicipality);
             return Ok(localities);
         }
 
+        #endregion
 
 
     }

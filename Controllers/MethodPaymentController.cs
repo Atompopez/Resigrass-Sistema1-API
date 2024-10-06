@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using ResiGrass_API.Logic;
 
 namespace ResiGrass_API.Controllers
@@ -18,6 +19,7 @@ namespace ResiGrass_API.Controllers
 
         #region GetMethodPayment
         [HttpGet("MethodPayment")]
+        [Authorize(AuthenticationSchemes = "Bearer")]
         public IActionResult GetMethodPayment()
         {
             var methodpayment = _dbQuery.GetMethodPayment();

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using ResiGrass_API.Logic;
 using ResiGrass_API.Models;
 
@@ -17,6 +18,7 @@ namespace ResiGrass_API.Controllers
 
         #region GetTypeCollector
         [HttpGet("TypeCollector")]
+        [Authorize(AuthenticationSchemes = "Bearer")]
         public IActionResult GetTypeCollectors()
         {
             var TypeCollector = _dbQuery.GetTypeCollectors();
@@ -33,6 +35,7 @@ namespace ResiGrass_API.Controllers
 
         #region ControllerCreation
         [HttpPost("CollectorCreation")]
+        [Authorize(AuthenticationSchemes = "Bearer")]
         public IActionResult CollectorCreation([FromBody] CollectorRequestModel requestModel)
         {
             var collectorModel = requestModel.CollectorModel;
@@ -78,6 +81,7 @@ namespace ResiGrass_API.Controllers
 
         #region CollectorColection
         [HttpPost("Colection")]
+        [Authorize(AuthenticationSchemes = "Bearer")]
         public IActionResult CollectorColection([FromBody] RecolectionModelInsert CollectionInsertModel)
         {
 
