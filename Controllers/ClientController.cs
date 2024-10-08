@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using ResiGrass_API.Logic;
 using ResiGrass_API.Models;
 using System.Collections.Generic;
@@ -18,6 +19,7 @@ namespace ResiGrass_API.Controllers
 
         #region GetTypeBusiness
         [HttpGet("TypeBusiness")]
+        [Authorize(AuthenticationSchemes = "Bearer")]
         public IActionResult GetTypeBusiness()
         {
             var typebusiness = _dbQuery.GetTypeBusiness();
@@ -34,17 +36,9 @@ namespace ResiGrass_API.Controllers
         } 
         #endregion
 
-        #region GetHeadquarters
-        [HttpGet("{clientId}/{idLocality}")]
-        public IActionResult GetHeadquarters(int clientId, int idLocality)
-        {
-            var client = _dbQuery.GetHeadquarters(clientId, idLocality);
-            return Ok(client);
-        } 
-        #endregion
-
         #region ClientCreation
         [HttpPost("ClientCreation")]
+        [Authorize(AuthenticationSchemes = "Bearer")]
         public IActionResult ClientCreation(ClientModelInsert ClientModel)
         {
             var client = _dbQuery.InsertClient(ClientModel);
@@ -54,6 +48,7 @@ namespace ResiGrass_API.Controllers
 
         #region ClientUpdate
         [HttpPut("ClientUpdate/{IdClient}")]
+        [Authorize(AuthenticationSchemes = "Bearer")]
         public IActionResult ClientUpdate(int IdClient, [FromBody] ClientModelInsert clientModel)
         {
             var existingClient = _dbQuery.GetClient(IdClient);
@@ -83,8 +78,19 @@ namespace ResiGrass_API.Controllers
         }
         #endregion
 
+        #region GetHeadquarters
+        [HttpGet("{clientId}/{idLocality}/GetHeadquarters")]
+        [Authorize(AuthenticationSchemes = "Bearer")]
+        public IActionResult GetHeadquarters(int clientId, int idLocality)
+        {
+            var client = _dbQuery.GetHeadquarters(clientId, idLocality);
+            return Ok(client);
+        } 
+        #endregion
+
         #region HeadquartersCreation
         [HttpPost("HeadquartersCreation")]
+        [Authorize(AuthenticationSchemes = "Bearer")]
         public IActionResult HeadquartersCreation(HeadQuartersModelCreation HeadQuarterModel)
         {
             var client = _dbQuery.HeadquartersCreation(HeadQuarterModel);
@@ -101,6 +107,7 @@ namespace ResiGrass_API.Controllers
 
         #region HeadquartersUpdate
         [HttpPut("HeadquartersUpdate/{IdHeadquarter}")]
+        [Authorize(AuthenticationSchemes = "Bearer")]
         public IActionResult HeadquartersUpdate(int IdHeadquarter, [FromBody] HeadQuartersModelCreation HeadQuarter)
         {
             var existingHeadquarter = _dbQuery.HeadquarterGet(IdHeadquarter);

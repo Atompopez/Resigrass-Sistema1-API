@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using ResiGrass_API.Logic;
 
 namespace ResiGrass_API.Controllers
@@ -17,6 +18,7 @@ namespace ResiGrass_API.Controllers
 
         #region GetMeasures
         [HttpGet("Measures")]
+        [Authorize(AuthenticationSchemes = "Bearer")]
         public IActionResult GetMeasure()
         {
             var measures = _dbQuery.GetMeasures();
