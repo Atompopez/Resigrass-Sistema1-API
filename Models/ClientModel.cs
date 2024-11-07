@@ -8,6 +8,7 @@
         public required string nameClient { get; set; }
         public int typeBusinessId { get; set; }
         public required string sign { get; set; }
+
         public required DateTime dateCreationClient { get; set; }
         public required bool status {  get; set; }
 

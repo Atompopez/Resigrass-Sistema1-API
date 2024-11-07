@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using IdentityServer4.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ResiGrass_API.Logic;
 using ResiGrass_API.Models;
@@ -10,11 +11,13 @@ namespace ResiGrass_API.Controllers
     public class CollectorController : ControllerBase
     {
         private readonly DbQuery _dbQuery;
-
-        public CollectorController(DbQuery dbQuery)
+        private readonly Logic.EmailNotificationService  bk;
+        public CollectorController(DbQuery dbQuery, EmailNotificationService emailNotificationService)
         {
             _dbQuery = dbQuery;
+            bk = emailNotificationService;
         }
+
 
         #region GetTypeCollector
         [HttpGet("TypeCollector")]
@@ -91,5 +94,27 @@ namespace ResiGrass_API.Controllers
         }
 
         #endregion
+
+        [HttpGet("test-email")]
+        public async Task<IActionResult> TestEmail()
+        {
+            try
+            {
+                var testClients = new List<RecolectionModel>
+        {
+            new RecolectionModel {  id = 2, bowlEmpty = 1, collectedName = "Prueba", headquarterId = 1, netWeight = 10, priceUnit = 10,endDate = DateTime.Now , fullPayment = 10,
+            observations = "dsfdf", receivedDate = DateTime.Now , receivedFull = 10 }
+        };
+
+                await bk.SendNotificationsAsync();
+
+                return Ok("Correo de prueba enviado correctamente.");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Error al enviar el correo de prueba: {ex.Message}");
+            }
+        } // PRUEBA PARA ENVIO DE EMAIL
+
     }
 }
