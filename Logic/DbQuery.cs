@@ -28,7 +28,7 @@ namespace ResiGrass_API.Logic
                 {
                     conn.Open();
 
-                    using (var cmd = new NpgsqlCommand("SELECT * FROM municipality", conn))
+                    using (var cmd = new NpgsqlCommand("SELECT * FROM municipality WHERE status != 0", conn))
                     {
                         using (var reader = cmd.ExecuteReader())
                         {
@@ -1072,7 +1072,7 @@ namespace ResiGrass_API.Logic
 
         #endregion
 
-        #region ClientCreation
+        #region InsertCollection
         public List<RecolectionModelInsert> InsertCollection(RecolectionModelInsert CollectionModel)
         {
             var Collection = new List<RecolectionModelInsert>();
@@ -1143,6 +1143,61 @@ namespace ResiGrass_API.Logic
 
 
         #endregion
+
+        #region Records
+        public List<RecolectionModel> GetRecordsDueInTwoDays()
+        {
+            var records = new List<RecolectionModel>();
+
+            try
+            {
+                using (var conn = new NpgsqlConnection(_connectionString))
+                {
+                    conn.Open();
+
+                    using (var cmd = new NpgsqlCommand("SELECT * FROM collection WHERE id = 1", conn))
+                    {
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                if (!reader.IsDBNull(0))
+                                {
+                                    var record = new RecolectionModel
+                                    {
+                                        collectedName = reader.GetString(1),
+                                        receivedDate = reader.GetDateTime(2),
+                                        endDate = reader.GetDateTime(3),
+                                        fullPayment = reader.GetFloat(4),
+                                        priceUnit = reader.GetFloat(5),
+                                        netWeight = reader.GetFloat(6),
+                                        observations = reader.GetString(7),
+                                        receivedFull = reader.GetInt32(8),
+                                        bowlEmpty = reader.GetInt32(9),
+                                        collectorId = reader.GetInt32(10),
+                                        headquarterId = reader.GetInt32(11),
+                                        measureId = reader.GetInt32(12),
+                                        methodPaymentId = reader.GetInt32(13),
+                                        productId = reader.GetInt32(14),
+                                    };
+
+                                    records.Add(record);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al obtener los registros: {ex.Message}");
+                return new List<RecolectionModel>();
+            }
+
+            return records;
+        }
+        #endregion
+
     }
 
 }

@@ -10,7 +10,7 @@ namespace ResiGrass_API.Models
         public int measureId { get; set; }
         public int methodPaymentId { get; set; }
         public int productId { get; set; }
-        HeadQuartersModel? headQuarterModel { get; set; }
+        public HeadQuartersModel? headQuarterModel { get; set; }
         ProductsModel? productsModel { get; set; }
         MeasuresModel? measuresModel { get; set; }
         MethodPaymentModel? methodPaymentModel { get; set; }
