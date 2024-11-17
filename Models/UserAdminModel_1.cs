@@ -1,6 +1,6 @@
 ﻿namespace ResiGrass_API.Models
 {
-    public class loginCollectorModel
+    public class UserAdminModel
     {
         public int id { get; set; }
         public required string user { get; set; }
@@ -29,9 +29,11 @@
         public bool Success { get; set; }
         public string Message { get; set; }
         public List<CollectorsModel> Collectors { get; set; }
+        public CollectorsModelSelect Data { get; set; }
 
         public LoginResponse()
         {
+            Data = new CollectorsModelSelect(); 
             Collectors = new List<CollectorsModel>();
         }
     }
