@@ -408,9 +408,9 @@ namespace ResiGrass_API.Logic
         #endregion
 
         #region Headquarters
-        public List<HeadQuartersModel> GetHeadquarters(int clientId, int idLocality)
+        public List<HeadQuartersModelGet> GetHeadquarters(int clientId, int idLocality)
         {
-            var Headquarter = new List<HeadQuartersModel>();
+            var Headquarter = new List<HeadQuartersModelGet>();
 
             try
             {
@@ -442,16 +442,18 @@ namespace ResiGrass_API.Logic
                             {
                                 if (!reader.IsDBNull(0) && !reader.IsDBNull(1) && !reader.IsDBNull(2) && !reader.IsDBNull(3) && !reader.IsDBNull(4) && !reader.IsDBNull(5) && !reader.IsDBNull(6) && !reader.IsDBNull(7) && !reader.IsDBNull(8))
                                 {
-                                    var headquarter = new HeadQuartersModel
+                                    var headquarter = new HeadQuartersModelGet
                                     {
                                         id = reader.GetInt32(0),
                                         nameHeadquarter = reader.GetString(1),
                                         numberPhone = reader.GetString(2),
                                         address = reader.GetString(3),
-                                       dateCreationHeadquarter = reader.GetDateTime(4),
-                                        status = reader.GetBoolean(5),
                                         clientId = reader.GetInt32(6),
                                         localityId = reader.GetInt32(7),
+                                        localitiesData = new LocalitiesModelGet
+                                        { 
+                                        nameLocality = reader.GetString(16),
+                                        }
 
                                     };
 
@@ -465,7 +467,7 @@ namespace ResiGrass_API.Logic
             catch (Exception ex)
             {
                 Console.WriteLine($"Error al obtener los tipos de negocio: {ex}");
-                return new List<HeadQuartersModel>();
+                return new List<HeadQuartersModelGet>();
             }
 
             return Headquarter;

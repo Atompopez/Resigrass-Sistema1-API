@@ -8,4 +8,8 @@
         public bool status { get; set; }
         public MunicipalityModel MunicipalityData { get; set; }
     }
+    public class LocalitiesModelGet
+    {
+         public required string nameLocality { get; set; }
+    }
 }

@@ -14,6 +14,17 @@
         public  DateTime dateCreationHeadquarter { get; set; }
     }
 
+    public class HeadQuartersModelGet
+    {
+        public int id { get; set; }
+        public string numberPhone { get; set; }
+        public int localityId { get; set; }
+        public int clientId { get; set; }
+        public string address { get; set; }
+        public required string nameHeadquarter { get; set; }
+        public LocalitiesModelGet? localitiesData { get; set; }                
+    }
+
     public class HeadQuartersModelCreation
     {
         public required string numberPhone { get; set; }
