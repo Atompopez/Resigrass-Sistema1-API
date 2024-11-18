@@ -3,8 +3,13 @@
     public class TypeCollectorsModel
     {
         public int id { get; set; }
-        public required string descriptionCollector { get; set; }
-        public required bool status {  get; set; }
+        public  string descriptionCollector { get; set; }
+        public  bool status {  get; set; }
 
+    }   
+    public class TypeCollectorsModelSelect
+    {
+        public  string descriptionCollector { get; set; }
+        
     }
 }

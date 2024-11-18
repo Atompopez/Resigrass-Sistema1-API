@@ -23,7 +23,7 @@ namespace ResiGrass_API.Models
         public required float priceUnit { get; set; }
         public required float netWeight { get; set; }
         public required string observations { get; set; }
-        public required string collectedName { get; set; }
+        
 
 
     }
@@ -41,15 +41,15 @@ namespace ResiGrass_API.Models
         MeasuresModel? measuresModel { get; set; }
         MethodPaymentModel? methodPaymentModel { get; set; }
         CollectorsModel? collectorModel { get; set; }
-        public required int receivedFull { get; set; }
-        public required int bowlEmpty { get; set; }
-        public required DateTime receivedDate { get; set; }
-        public required DateTime endDate { get; set; }
-        public required float fullPayment { get; set; }
-        public required float priceUnit { get; set; }
-        public required float netWeight { get; set; }
-        public required string observations { get; set; }
-        public required string collectedName { get; set; }
+        public  int receivedFull { get; set; }
+        public  int bowlEmpty { get; set; }
+        public  DateTime receivedDate { get; set; }
+        public  DateTime endDate { get; set; }
+        public  float fullPayment { get; set; }
+        public  float priceUnit { get; set; }
+        public  float netWeight { get; set; }
+        public  string observations { get; set; }
+        
 
 
     }

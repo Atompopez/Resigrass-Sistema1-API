@@ -76,7 +76,7 @@ namespace ResiGrass_API.Controllers
             UserCredentials crede = new UserCredentials();
             crede.Username = "resigrass";
             string token = Auth.GenerateJwtToken(crede.Username);
-            return Ok(new { message = response.Message, data = response.Collectors, Token = token });
+            return Ok(new { message = response.Message, data = response.Data, Token = token });
         }
 
 
@@ -102,7 +102,7 @@ namespace ResiGrass_API.Controllers
             {
                 var testClients = new List<RecolectionModel>
         {
-            new RecolectionModel {  id = 2, bowlEmpty = 1, collectedName = "Prueba", headquarterId = 1, netWeight = 10, priceUnit = 10,endDate = DateTime.Now , fullPayment = 10,
+            new RecolectionModel {  id = 2, bowlEmpty = 1,  headquarterId = 1, netWeight = 10, priceUnit = 10,endDate = DateTime.Now , fullPayment = 10,
             observations = "dsfdf", receivedDate = DateTime.Now , receivedFull = 10 }
         };
 

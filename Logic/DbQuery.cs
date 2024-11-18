@@ -3,6 +3,7 @@ using ResiGrass_API.Models;
 using System.Text;
 using System.Security.Cryptography;
 using System.Collections;
+using DocumentFormat.OpenXml.Office.Word;
 
 
 
@@ -447,30 +448,10 @@ namespace ResiGrass_API.Logic
                                         nameHeadquarter = reader.GetString(1),
                                         numberPhone = reader.GetString(2),
                                         address = reader.GetString(3),
-                                        dateCreationHeadquarter = reader.GetDateTime(4),
+                                       dateCreationHeadquarter = reader.GetDateTime(4),
                                         status = reader.GetBoolean(5),
                                         clientId = reader.GetInt32(6),
                                         localityId = reader.GetInt32(7),
-
-                                        clientData = new ClientModel
-
-                                        {
-                                            id = reader.GetInt32(8),
-                                            nitCc = reader.GetString(9),
-                                            nameClient = reader.GetString(10),
-                                            dateCreationClient = reader.GetDateTime(11),
-                                            sign = reader.GetString(12),
-                                            status = reader.GetBoolean(13),
-                                            typeBusinessId = reader.GetInt32(14),
-                                        },
-
-                                        localitiesData = new LocalitiesModel
-                                        {
-                                            id = reader.GetInt32(15),
-                                            nameLocality = reader.GetString(16),
-                                            status = reader.GetBoolean(17),
-                                            municipalityId = reader.GetInt32(18),
-                                        }
 
                                     };
 
@@ -981,7 +962,6 @@ namespace ResiGrass_API.Logic
                 {
                     conn.Open();
 
-
                     string queryCheckUser = "SELECT * FROM \"loginCollector\" WHERE \"user\" = @user";
                     using (var cmdCheckUser = new NpgsqlCommand(queryCheckUser, conn))
                     {
@@ -989,7 +969,7 @@ namespace ResiGrass_API.Logic
 
                         using (var reader = cmdCheckUser.ExecuteReader())
                         {
-                            if (!reader.Read()) 
+                            if (!reader.Read())
                             {
                                 response.Success = false;
                                 response.Message = "El usuario no existe.";
@@ -1001,7 +981,6 @@ namespace ResiGrass_API.Logic
 
                             reader.Close();
 
-
                             string hashedInputPassword = HashPassword(LoginCollector.password);
                             if (hashedInputPassword != storedPassword)
                             {
@@ -1011,11 +990,12 @@ namespace ResiGrass_API.Logic
                             }
 
                             string queryCollector = @"
-                    SELECT c.*, tc.id, tc.""descriptionCollector"", tc.status, lc.id, lc.user, lc.password, lc.status
-                    FROM collector c
-                    INNER JOIN ""typeCollector"" tc ON c.""typeCollectorId"" = tc.id
-                    INNER JOIN ""loginCollector"" lc ON c.""loginCollectorId"" = lc.id
-                    WHERE lc.""user"" = @user";
+                        SELECT c.id, c.""nameCollector"", c.""numberPhoneCollector"", 
+                               tc.""descriptionCollector""
+                        FROM collector c
+                        INNER JOIN ""typeCollector"" tc ON c.""typeCollectorId"" = tc.id
+                        INNER JOIN ""loginCollector"" lc ON c.""loginCollectorId"" = lc.id
+                        WHERE lc.""user"" = @user";
 
                             using (var cmdCollector = new NpgsqlCommand(queryCollector, conn))
                             {
@@ -1023,37 +1003,29 @@ namespace ResiGrass_API.Logic
 
                                 using (var collectorReader = cmdCollector.ExecuteReader())
                                 {
-                                    while (collectorReader.Read())
+                                    if (collectorReader.Read())
                                     {
-                                        var collector = new CollectorsModel
+                                        var collectorData = new CollectorsModelSelect
                                         {
                                             id = collectorReader.GetInt32(0),
                                             nameCollector = collectorReader.GetString(1),
                                             numberPhoneCollector = collectorReader.GetString(2),
-                                            dateCreationCollector = collectorReader.GetDateTime(3),
-                                            status = collectorReader.GetBoolean(4),
-                                            loginCollectorId = collectorReader.GetInt32(5),
-                                            typeCollectorId = collectorReader.GetInt32(6),
-                                            typeCollectorsModelId = new TypeCollectorsModel
+                                            typeCollectorsModelId = new TypeCollectorsModelSelect
                                             {
-                                                id = collectorReader.GetInt32(7),
-                                                descriptionCollector = collectorReader.GetString(8),
-                                                status = collectorReader.GetBoolean(9),
-                                            },
-                                            loginCollectorModelId = new loginCollectorModel
-                                            {
-                                                id = collectorReader.GetInt32(10),
-                                                user = collectorReader.GetString(11),
-                                                password = collectorReader.GetString(12),
-                                                status = collectorReader.GetBoolean(13),
+                                                descriptionCollector = collectorReader.GetString(3),
                                             }
                                         };
 
-                                        response.Collectors.Add(collector);
-                                    }
+                                        response.Data = collectorData;
 
-                                    response.Success = true;
-                                    response.Message = "Inicio de sesión exitoso.";
+                                        response.Success = true;
+                                        response.Message = "Inicio de sesión exitoso.";
+                                    }
+                                    else
+                                    {
+                                        response.Success = false;
+                                        response.Message = "Datos del recolector no encontrados.";
+                                    }
                                 }
                             }
                         }
@@ -1083,13 +1055,13 @@ namespace ResiGrass_API.Logic
                 {
                     conn.Open();
                     string query = @"
-                INSERT INTO collection (""collectedName"", ""receivedDate"", ""endDate"", ""fullPayment"", ""priceUnit"", ""netWeight"",observations,""receivedFull"",""bowlEmpty"",""collectorId"",""headquarterId"",""measureId"",""methodPaymentId"",""productId"")
+                INSERT INTO collection ( ""receivedDate"", ""endDate"", ""fullPayment"", ""priceUnit"", ""netWeight"",observations,""receivedFull"",""bowlEmpty"",""collectorId"",""headquarterId"",""measureId"",""methodPaymentId"",""productId"")
                 VALUES ( @collectedName, @receivedDate, @endDate, @fullPayment, @priceUnit, @netWeight, @observations, @receivedFull, @bowlEmpty,  @collectorId, @headquarterId, @measureId, @methodPaymentId, @productId)
                 RETURNING *";
 
                     using (var cmd = new NpgsqlCommand(query, conn))
                     {
-                        cmd.Parameters.AddWithValue("@collectedName", CollectionModel.collectedName);
+                        
                         cmd.Parameters.AddWithValue("@receivedDate", CollectionModel.receivedDate);
                         cmd.Parameters.AddWithValue("@endDate", DateTime.Now);
                         cmd.Parameters.AddWithValue("@fullPayment", CollectionModel.fullPayment);
@@ -1110,20 +1082,20 @@ namespace ResiGrass_API.Logic
                             {
                                 var collection = new RecolectionModelInsert
                                 {
-                                    collectedName = reader.GetString(1),
-                                    receivedDate = reader.GetDateTime(2),
-                                    endDate = reader.GetDateTime(3),
-                                    fullPayment = reader.GetFloat(4),
-                                    priceUnit = reader.GetFloat(5),
-                                    netWeight = reader.GetFloat(6),
-                                    observations = reader.GetString(7),
-                                    receivedFull = reader.GetInt32(8),
-                                    bowlEmpty = reader.GetInt32(9),
-                                    collectorId = reader.GetInt32(10),
-                                    headquarterId = reader.GetInt32(11),
-                                    measureId = reader.GetInt32(12),
-                                    methodPaymentId = reader.GetInt32(13),
-                                    productId = reader.GetInt32(14),
+                                    
+                                    receivedDate = reader.GetDateTime(1),
+                                    endDate = reader.GetDateTime(2),
+                                    fullPayment = reader.GetFloat(3),
+                                    priceUnit = reader.GetFloat(4),
+                                    netWeight = reader.GetFloat(5),
+                                    observations = reader.GetString(6),
+                                    receivedFull = reader.GetInt32(7),
+                                    bowlEmpty = reader.GetInt32(8),
+                                    collectorId = reader.GetInt32(9),
+                                    headquarterId = reader.GetInt32(10),
+                                    measureId = reader.GetInt32(11),
+                                    methodPaymentId = reader.GetInt32(12),
+                                    productId = reader.GetInt32(13),
 
                                 };
                                 Collection.Add(collection);
@@ -1165,20 +1137,21 @@ namespace ResiGrass_API.Logic
                                 {
                                     var record = new RecolectionModel
                                     {
-                                        collectedName = reader.GetString(1),
-                                        receivedDate = reader.GetDateTime(2),
-                                        endDate = reader.GetDateTime(3),
-                                        fullPayment = reader.GetFloat(4),
-                                        priceUnit = reader.GetFloat(5),
-                                        netWeight = reader.GetFloat(6),
-                                        observations = reader.GetString(7),
-                                        receivedFull = reader.GetInt32(8),
-                                        bowlEmpty = reader.GetInt32(9),
-                                        collectorId = reader.GetInt32(10),
-                                        headquarterId = reader.GetInt32(11),
-                                        measureId = reader.GetInt32(12),
-                                        methodPaymentId = reader.GetInt32(13),
-                                        productId = reader.GetInt32(14),
+                                        
+                                        
+                                        receivedDate = reader.GetDateTime(1),
+                                        endDate = reader.GetDateTime(2),
+                                        fullPayment = reader.GetFloat(3),
+                                        priceUnit = reader.GetFloat(4),
+                                        netWeight = reader.GetFloat(5),
+                                        observations = reader.GetString(6),
+                                        receivedFull = reader.GetInt32(7),
+                                        bowlEmpty = reader.GetInt32(8),
+                                        collectorId = reader.GetInt32(9),
+                                        headquarterId = reader.GetInt32(10),
+                                        measureId = reader.GetInt32(11),
+                                        methodPaymentId = reader.GetInt32(12),
+                                        productId = reader.GetInt32(13),
                                     };
 
                                     records.Add(record);
@@ -1196,6 +1169,141 @@ namespace ResiGrass_API.Logic
 
             return records;
         }
+        #endregion
+
+        #region UserAdminCreation
+        public string UserAdminCreation(userAdminModel userAdminModel)
+        {
+            var Users = new List<userAdminModel>();
+            string hashedPassword;
+            try
+            {
+                using (var conn = new NpgsqlConnection(_connectionString))
+                {
+                    conn.Open();
+
+                    // Primero insertar en la tabla loginCollector
+                    string query = @"
+
+            select * from  ""adminUsers"" where ""user""= @user";
+
+
+
+                    int loginCollectorId;
+
+                    using (var cmdLogin = new NpgsqlCommand(query, conn))
+
+                    {
+                        cmdLogin.Parameters.AddWithValue("@user", userAdminModel.user);
+
+                        using (var reader = cmdLogin.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                return "Ya existe usuario";
+                            }
+
+                            // Hash de la contraseña antes de la inserción
+                            hashedPassword = HashPassword(userAdminModel.password);
+
+                            //cmdLogin.Parameters.AddWithValue("@user", userAdminModel.user);
+                            //cmdLogin.Parameters.AddWithValue("@password", hashedPassword); // Usar la contraseña hasheada                                                                                      
+                            //var statusBit = userAdminModel.status ? new BitArray(new[] { true }) : new BitArray(new[] { false });
+
+                            // Asignar el valor del parámetro como un array de bits
+                            //cmdLogin.Parameters.AddWithValue("@status", statusBit);
+                        }
+                        string QueryUserCreation = @"
+            INSERT INTO resigrass.""adminUsers""(name, ""user"", password, ""phoneNumber"", ""profileId"")
+            VALUES (@name,@user,@password,@phoneNumber,@profileId);";
+
+                        using (var cmdUsers = new NpgsqlCommand(QueryUserCreation, conn))
+                        {
+                            cmdUsers.Parameters.AddWithValue("@name", userAdminModel.name);
+                            cmdUsers.Parameters.AddWithValue("@user", userAdminModel.user);
+                            cmdUsers.Parameters.AddWithValue("@password", hashedPassword);
+                            cmdUsers.Parameters.AddWithValue("@phoneNumber", userAdminModel.phoneNumber);
+                            cmdUsers.Parameters.AddWithValue("@profileId", userAdminModel.profileId);
+                           
+
+                            using (var reader = cmdUsers.ExecuteReader())
+                            {
+                                if (reader.Read())
+                                {
+                                    return "Usuario creado :D";
+                                   
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al insertar el recolector: {ex.Message}");
+                return  "";
+            }
+
+            return "collectors";
+        }
+
+
+
+        #endregion
+
+        #region CollectorLoginGet
+        public LoginResponse UserAdminLogin(userAdminLoginModel UserModel) 
+        {
+            var response = new LoginResponse();
+            try
+            {
+                using (var conn = new NpgsqlConnection(_connectionString))
+                {
+                    conn.Open();
+                    string queryCheckUser = "SELECT * FROM \"adminUsers\" WHERE \"user\" = @user";
+                    using (var cmdCheckUser = new NpgsqlCommand(queryCheckUser, conn))
+                    {
+                        cmdCheckUser.Parameters.AddWithValue("@user", UserModel.user);
+
+                        using (var reader = cmdCheckUser.ExecuteReader())
+                        {
+                            if (!reader.Read())
+                            {
+                                response.Success = false;
+                                response.Message = "El usuario no existe.";
+                                return response;
+                            }
+
+                            var storedPassword = reader.GetString(reader.GetOrdinal("password"));
+//                            var storedStatus = reader.GetBoolean(reader.GetOrdinal("status"));
+
+                            reader.Close();
+
+
+                            string hashedInputPassword = HashPassword(UserModel.password);
+                            if (hashedInputPassword != storedPassword)
+                            {
+                                response.Success = false;
+                                response.Message = "La contraseña es incorrecta.";
+                                return response;
+                            }
+
+                            response.Success = true;
+                            response.Message = "Inicio de sesión exitoso.";
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = $"Error al obtener los recolectores: {ex.Message}";
+            }
+
+            return response;
+        }
+
+
         #endregion
 
     }

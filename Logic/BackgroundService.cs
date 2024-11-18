@@ -110,7 +110,7 @@ namespace ResiGrass_API.Logic
                 {
                     var body = wordDoc.MainDocumentPart.Document.Body;
 
-                    ReplaceTextInDocument(body, "Nombre_Generador", record.collectedName);
+                   // ReplaceTextInDocument(body, "Nombre_Generador", record.collectedName);
                     ReplaceTextInDocument(body, "Nit_", record.collectorId.ToString());
                     ReplaceTextInDocument(body, "Direccion_", record.headQuarterModel?.address ?? "No disponible");
                     ReplaceTextInDocument(body, "KG_Recibido", record.netWeight.ToString());
@@ -160,7 +160,7 @@ namespace ResiGrass_API.Logic
                 sb.Append("<p>Estimado cliente,</p>");
                 sb.Append("<p>Le notificamos que en dos días se cumplirá la fecha para la recolección del aceite de cocina usado.</p>");
                 sb.Append("<ul>");
-                sb.AppendFormat("<li>Nombre del generador: {0}</li>", record.collectedName);
+              //  sb.AppendFormat("<li>Nombre del generador: {0}</li>", record.collectedName);
                 sb.AppendFormat("<li>Kilogramos recibidos: {0}</li>", record.netWeight);
                 sb.AppendFormat("<li>Fecha de recolección: {0}</li>", record.receivedDate.ToShortDateString());
                 sb.Append("</ul>");
