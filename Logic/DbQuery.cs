@@ -451,8 +451,8 @@ namespace ResiGrass_API.Logic
                                         clientId = reader.GetInt32(6),
                                         localityId = reader.GetInt32(7),
                                         localitiesData = new LocalitiesModelGet
-                                        { 
-                                        nameLocality = reader.GetString(16),
+                                        {
+                                            nameLocality = reader.GetString(16),
                                         }
 
                                     };
@@ -992,12 +992,12 @@ namespace ResiGrass_API.Logic
                             }
 
                             string queryCollector = @"
-                        SELECT c.id, c.""nameCollector"", c.""numberPhoneCollector"", 
-                               tc.""descriptionCollector""
-                        FROM collector c
-                        INNER JOIN ""typeCollector"" tc ON c.""typeCollectorId"" = tc.id
-                        INNER JOIN ""loginCollector"" lc ON c.""loginCollectorId"" = lc.id
-                        WHERE lc.""user"" = @user";
+                                    SELECT c.id, c.""nameCollector"", c.""numberPhoneCollector"", 
+                                           tc.""descriptionCollector""
+                                    FROM collector c
+                                    INNER JOIN ""typeCollector"" tc ON c.""typeCollectorId"" = tc.id
+                                    INNER JOIN ""loginCollector"" lc ON c.""loginCollectorId"" = lc.id
+                                    WHERE lc.""user"" = @user";
 
                             using (var cmdCollector = new NpgsqlCommand(queryCollector, conn))
                             {
@@ -1007,9 +1007,11 @@ namespace ResiGrass_API.Logic
                                 {
                                     if (collectorReader.Read())
                                     {
+                                        var collectorId = collectorReader.GetInt32(0);
+
                                         var collectorData = new CollectorsModelSelect
                                         {
-                                            id = collectorReader.GetInt32(0),
+                                            id = collectorId,
                                             nameCollector = collectorReader.GetString(1),
                                             numberPhoneCollector = collectorReader.GetString(2),
                                             typeCollectorsModelId = new TypeCollectorsModelSelect
@@ -1018,8 +1020,42 @@ namespace ResiGrass_API.Logic
                                             }
                                         };
 
-                                        response.Data = collectorData;
+                                        
+                                        collectorReader.Close();
 
+                                        
+                                        string serialQuery = @"
+                                                SELECT ""serial_number""
+                                                FROM collection
+                                                WHERE ""collectorId"" = @collectorId
+                                                ORDER BY id DESC
+                                                LIMIT 1";
+
+                                        using (var serialCmd = new NpgsqlCommand(serialQuery, conn))
+                                        {
+                                            serialCmd.Parameters.AddWithValue("@collectorId", collectorId);
+
+                                            var result = serialCmd.ExecuteScalar();
+                                            string nextSerial;
+
+                                            if (result != null)
+                                            {
+                                                
+                                                var lastSerial = result.ToString();
+                                                var lastNumber = int.Parse(lastSerial.Split('-').Last());
+                                                nextSerial = $"RS-{collectorId:D2}-{(lastNumber + 1):D4}";
+                                            }
+                                            else
+                                            {
+                                                
+                                                nextSerial = $"RS-{collectorId:D2}-0001";
+                                            }
+
+                                            
+                                            collectorData.nextSerialNumber = nextSerial;
+                                        }
+
+                                        response.Data = collectorData;
                                         response.Success = true;
                                         response.Message = "Inicio de sesión exitoso.";
                                     }
@@ -1044,6 +1080,7 @@ namespace ResiGrass_API.Logic
         }
 
 
+
         #endregion
 
         #region InsertCollection
@@ -1056,14 +1093,20 @@ namespace ResiGrass_API.Logic
                 using (var conn = new NpgsqlConnection(_connectionString))
                 {
                     conn.Open();
+
                     string query = @"
-                INSERT INTO collection ( ""receivedDate"", ""endDate"", ""fullPayment"", ""priceUnit"", ""netWeight"",observations,""receivedFull"",""bowlEmpty"",""collectorId"",""headquarterId"",""measureId"",""methodPaymentId"",""productId"")
-                VALUES ( @collectedName, @receivedDate, @endDate, @fullPayment, @priceUnit, @netWeight, @observations, @receivedFull, @bowlEmpty,  @collectorId, @headquarterId, @measureId, @methodPaymentId, @productId)
+                INSERT INTO collection (
+                    ""receivedDate"", ""endDate"", ""fullPayment"", ""priceUnit"", ""netWeight"",
+                    observations, ""receivedFull"", ""bowlEmpty"", ""collectorId"", 
+                    ""headquarterId"", ""measureId"", ""methodPaymentId"", ""productId"", ""serial_number"")
+                VALUES (
+                    @receivedDate, @endDate, @fullPayment, @priceUnit, @netWeight, 
+                    @observations, @receivedFull, @bowlEmpty, @collectorId, 
+                    @headquarterId, @measureId, @methodPaymentId, @productId, @serialNumber)
                 RETURNING *";
 
                     using (var cmd = new NpgsqlCommand(query, conn))
                     {
-                        
                         cmd.Parameters.AddWithValue("@receivedDate", CollectionModel.receivedDate);
                         cmd.Parameters.AddWithValue("@endDate", DateTime.Now);
                         cmd.Parameters.AddWithValue("@fullPayment", CollectionModel.fullPayment);
@@ -1077,6 +1120,7 @@ namespace ResiGrass_API.Logic
                         cmd.Parameters.AddWithValue("@measureId", CollectionModel.measureId);
                         cmd.Parameters.AddWithValue("@methodPaymentId", CollectionModel.methodPaymentId);
                         cmd.Parameters.AddWithValue("@productId", CollectionModel.productId);
+                        cmd.Parameters.AddWithValue("@serialNumber", CollectionModel.serial_number);
 
                         using (var reader = cmd.ExecuteReader())
                         {
@@ -1084,7 +1128,6 @@ namespace ResiGrass_API.Logic
                             {
                                 var collection = new RecolectionModelInsert
                                 {
-                                    
                                     receivedDate = reader.GetDateTime(1),
                                     endDate = reader.GetDateTime(2),
                                     fullPayment = reader.GetFloat(3),
@@ -1097,8 +1140,7 @@ namespace ResiGrass_API.Logic
                                     headquarterId = reader.GetInt32(10),
                                     measureId = reader.GetInt32(11),
                                     methodPaymentId = reader.GetInt32(12),
-                                    productId = reader.GetInt32(13),
-
+                                    productId = reader.GetInt32(13), 
                                 };
                                 Collection.Add(collection);
                             }
@@ -1139,8 +1181,8 @@ namespace ResiGrass_API.Logic
                                 {
                                     var record = new RecolectionModel
                                     {
-                                        
-                                        
+
+
                                         receivedDate = reader.GetDateTime(1),
                                         endDate = reader.GetDateTime(2),
                                         fullPayment = reader.GetFloat(3),
@@ -1226,14 +1268,14 @@ namespace ResiGrass_API.Logic
                             cmdUsers.Parameters.AddWithValue("@password", hashedPassword);
                             cmdUsers.Parameters.AddWithValue("@phoneNumber", userAdminModel.phoneNumber);
                             cmdUsers.Parameters.AddWithValue("@profileId", userAdminModel.profileId);
-                           
+
 
                             using (var reader = cmdUsers.ExecuteReader())
                             {
                                 if (reader.Read())
                                 {
                                     return "Usuario creado :D";
-                                   
+
                                 }
                             }
                         }
@@ -1243,7 +1285,7 @@ namespace ResiGrass_API.Logic
             catch (Exception ex)
             {
                 Console.WriteLine($"Error al insertar el recolector: {ex.Message}");
-                return  "";
+                return "";
             }
 
             return "collectors";
@@ -1254,7 +1296,7 @@ namespace ResiGrass_API.Logic
         #endregion
 
         #region CollectorLoginGet
-        public LoginResponse UserAdminLogin(userAdminLoginModel UserModel) 
+        public LoginResponse UserAdminLogin(userAdminLoginModel UserModel)
         {
             var response = new LoginResponse();
             try
@@ -1277,7 +1319,7 @@ namespace ResiGrass_API.Logic
                             }
 
                             var storedPassword = reader.GetString(reader.GetOrdinal("password"));
-//                            var storedStatus = reader.GetBoolean(reader.GetOrdinal("status"));
+                            //                            var storedStatus = reader.GetBoolean(reader.GetOrdinal("status"));
 
                             reader.Close();
 
