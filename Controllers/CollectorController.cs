@@ -84,7 +84,7 @@ namespace ResiGrass_API.Controllers
 
         #region CollectorColection
         [HttpPost("Colection")]
-        [Authorize(AuthenticationSchemes = "Bearer")]
+      //  [Authorize(AuthenticationSchemes = "Bearer")]
         public IActionResult CollectorColection([FromBody] RecolectionModelInsert CollectionInsertModel)
         {
 

@@ -21,6 +21,8 @@
         public int id { get; set; }
         public  string nameCollector {  get; set; }
         public  string numberPhoneCollector { get; set; }
+
+        public string nextSerialNumber { get; set; }
         public TypeCollectorsModelSelect? typeCollectorsModelId { get; set; }        
         
 
