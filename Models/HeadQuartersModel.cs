@@ -21,6 +21,7 @@
         public int localityId { get; set; }
         public string clientId { get; set; }
         public string address { get; set; }
+        public bool status { get; set; }
         public required string nameHeadquarter { get; set; }
         public LocalitiesModelGet? localitiesData { get; set; }                
     }
