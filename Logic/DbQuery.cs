@@ -15,7 +15,7 @@ namespace ResiGrass_API.Logic
 
         public DbQuery(string connectionString)
         {
-            _connectionString = connectionString;
+            _connectionString = connectionString;            
         }
 
         #region Municipalities
@@ -115,7 +115,7 @@ namespace ResiGrass_API.Logic
 
             return localities;
         }
-        #endregion
+        #endregion 
 
         #region TypeBusiness
         public List<TypeBusinessModel> GetTypeBusiness()
@@ -412,7 +412,7 @@ namespace ResiGrass_API.Logic
                 using (var conn = new NpgsqlConnection(_connectionString))
                 {
                     conn.Open();
-                    string query;
+                    string query; 
 
                     if (clientId == 0 || idLocality == 0)
                     {
@@ -448,7 +448,8 @@ namespace ResiGrass_API.Logic
                                         localitiesData = new LocalitiesModelGet
                                         {
                                             nameLocality = reader.GetString(17),
-                                        }
+                                        },
+                                        status = reader.GetBoolean(5),
 
                                     };
 
