@@ -242,11 +242,7 @@ namespace ResiGrass_API.Logic
                 {
                     conn.Open();
                     string query;
-
-
                     query = "SELECT * FROM \"client\" WHERE id = @id";
-
-
                     using (var cmd = new NpgsqlCommand(query, conn))
                     {
                         cmd.Parameters.AddWithValue("@id", IdClient);
@@ -266,7 +262,6 @@ namespace ResiGrass_API.Logic
                                         status = reader.GetBoolean(5),
                                         typeBusinessId = reader.GetInt32(6),
                                     };
-
                                     Client.Add(client);
                                 }
                             }
@@ -448,11 +443,11 @@ namespace ResiGrass_API.Logic
                                         nameHeadquarter = reader.GetString(1),
                                         numberPhone = reader.GetString(2),
                                         address = reader.GetString(3),
-                                        clientId = reader.GetInt32(6),
-                                        localityId = reader.GetInt32(7),
+                                        localityId = reader.GetInt32(8),
+                                        clientId = reader.GetString(10),
                                         localitiesData = new LocalitiesModelGet
                                         {
-                                            nameLocality = reader.GetString(16),
+                                            nameLocality = reader.GetString(17),
                                         }
 
                                     };
@@ -1049,9 +1044,7 @@ namespace ResiGrass_API.Logic
                                             {
                                                 
                                                 nextSerial = $"RS-{collectorId:D2}-0001";
-                                            }
-
-                                            
+                                            }                                            
                                             collectorData.nextSerialNumber = nextSerial;
                                         }
 
@@ -1295,7 +1288,7 @@ namespace ResiGrass_API.Logic
 
         #endregion
 
-        #region CollectorLoginGet
+        #region AdminLoginGet
         public LoginResponse UserAdminLogin(userAdminLoginModel UserModel)
         {
             var response = new LoginResponse();
