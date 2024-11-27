@@ -1,0 +1,123 @@
+﻿<%@ Master Language="C#" AutoEventWireup="true" CodeBehind="Site.master.cs" Inherits="ServerResigrassEstesies.SiteMaster" %>
+
+<!DOCTYPE html>
+<html lang="es">
+<head runat="server">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%: Page.Title %> - Mi aplicación ASP.NET</title>
+    <link href="~/Content/Site.css" rel="stylesheet" type="text/css" />
+    <style>
+        body {
+            background-image: url('<%= ResolveUrl("./Images/FondoLoginAceiteUsado.jpg") %>');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            margin: 0;
+            padding: 0;
+        }
+
+        .layout {
+            display: flex;
+        }
+
+        .sidebar {
+            height: 100%;
+            width: 250px;
+            position: fixed;
+            background-color: #FFCC80;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+            z-index: 1000;
+            background-image: linear-gradient(200deg,#ffb300,#ffc107,#ffca28,#ffd54f,#ffe082);
+            font-family: 'Nonito', Arial, sans-serif; /* Fuente personalizada */
+        }
+
+        .sidebar-logo {
+            display: block;
+            margin: 20px auto;
+            width: 240px; /* Tamaño ajustado */
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+        }
+
+            .sidebar-menu li {
+                margin-bottom: 20px;
+            }
+
+        .sidebar-link {
+            text-decoration: none;
+            color: white;
+            font-size: 1.2em;
+            padding: 10px 20px;
+            display: block;
+        }
+
+            .sidebar-link:hover {
+                background-color: #FF9800;
+            }
+
+        .sub-menu {
+            display: none;
+            padding-left: 10px;
+        }
+
+        .content-wrapper {
+            margin-left: 500px;
+            padding: 20px;
+            flex-grow: 1;
+            background-color: transparent; /* Fondo transparente */
+            color: #000; /* Mantener texto legible */
+        }
+    </style>
+</head>
+<body>
+    <form runat="server">
+        <div class="layout">
+            <%-- Comprobamos si el usuario está autenticado --%>
+            <% if (Session["IsAuthenticated"] != null && (bool)Session["IsAuthenticated"] == true)
+                { %>
+            <!-- Barra lateral -->
+            <div class="sidebar">
+                <img src="./Images/logoResigrass.png" alt="Logo" class="sidebar-logo" />
+                <ul class="sidebar-menu">
+                    <li class="submenu">
+                        <a href="javascript:void(0)" class="sidebar-link" onclick="toggleSubMenu('configSubMenu')">CONFIGURACIÓN</a>
+                        <ul id="configSubMenu" class="sub-menu">
+                            <li><a href="Headquarters.aspx" class="sidebar-link">Sedes</a></li>
+                            <li><a href="SubPage2.aspx" class="sidebar-link">Tipos de negocio</a></li>
+                            <li><a href="SubPage3.aspx" class="sidebar-link">Clientes</a></li>
+                            <li><a href="SubPage4.aspx" class="sidebar-link">Tipo de recolector</a></li>
+                            <li><a href="SubPage5.aspx" class="sidebar-link">Recolectores</a></li>
+                        </ul>
+                    </li>
+                    <li class="submenu">
+                        <a href="javascript:void(0)" class="sidebar-link" onclick="toggleSubMenu('statsSubMenu')">ESTADÍSTICAS</a>
+                        <ul id="statsSubMenu" class="sub-menu">
+                            <li><a href="StatsPage1.aspx" class="sidebar-link">Medidas general</a></li>
+                            <li><a href="StatsPage2.aspx" class="sidebar-link">Estadística 2</a></li>
+                            <li><a href="StatsPage3.aspx" class="sidebar-link">Estadística 3</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+            <% } %>
+            <!-- Contenido principal -->
+            <div class="content-wrapper">
+                <asp:ContentPlaceHolder ID="MainContent" runat="server"></asp:ContentPlaceHolder>
+            </div>
+        </div>
+    </form>
+    <script>
+        function toggleSubMenu(subMenuId) {
+            var subMenu = document.getElementById(subMenuId);
+            subMenu.style.display = subMenu.style.display === "block" ? "none" : "block";
+        }
+    </script>
+</body>
+</html>
