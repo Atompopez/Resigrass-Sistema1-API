@@ -21,6 +21,7 @@
         public int id { get; set; }
         public  string nameCollector {  get; set; }
         public  string numberPhoneCollector { get; set; }
+        public string profile_image { get; set; }
 
         public string nextSerialNumber { get; set; }
         public TypeCollectorsModelSelect? typeCollectorsModelId { get; set; }        
@@ -34,6 +35,7 @@
         public required string numberPhoneCollector { get; set; }
         public required bool status { get; set; }
         public  int loginCollectorId { get; set; }
+
         public required int typeCollectorId { get; set; }
         public required DateTime dateCreationCollector { get; set; }
 
@@ -45,6 +47,7 @@
     public class CollectorRequestModel
     {
         public CollectorModelInsert CollectorModel { get; set; }
+        public string ProfileImage { get; set; }
         public loginCreationCollectorModel LoginCollectorModel { get; set; }
     }
 

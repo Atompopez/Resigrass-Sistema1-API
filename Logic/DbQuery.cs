@@ -448,9 +448,8 @@ namespace ResiGrass_API.Logic
                                         localitiesData = new LocalitiesModelGet
                                         {
                                             nameLocality = reader.GetString(17),
-                                        },
+                                        }, 
                                         status = reader.GetBoolean(5),
-
                                     };
 
                                     Headquarter.Add(headquarter);
@@ -853,7 +852,7 @@ namespace ResiGrass_API.Logic
         #endregion
 
         #region CollectorCreation
-        public List<CollectorModelInsert> InsertCollector(CollectorModelInsert collectorModel, loginCreationCollectorModel loginCollectorModel)
+        public List<CollectorModelInsert> InsertCollector(CollectorModelInsert collectorModel, loginCreationCollectorModel loginCollectorModel, byte[] imageData)
         {
             var collectors = new List<CollectorModelInsert>();
 
@@ -863,37 +862,35 @@ namespace ResiGrass_API.Logic
                 {
                     conn.Open();
 
-                    // Primero insertar en la tabla loginCollector
+                    
                     string queryLogin = @"
-            INSERT INTO resigrass.""loginCollector"" (""user"", ""password"", ""status"")
-            VALUES (@user, @password, @status)
-            RETURNING id";
+                INSERT INTO resigrass.""loginCollector"" (""user"", ""password"", ""status"")
+                VALUES (@user, @password, @status)
+                RETURNING id";
 
                     int loginCollectorId;
 
                     using (var cmdLogin = new NpgsqlCommand(queryLogin, conn))
                     {
-                        // Hash de la contraseña antes de la inserción
+                    
                         string hashedPassword = HashPassword(loginCollectorModel.password);
 
                         cmdLogin.Parameters.AddWithValue("@user", loginCollectorModel.user);
-                        cmdLogin.Parameters.AddWithValue("@password", hashedPassword); // Usar la contraseña hasheada                                                                                      
+                        cmdLogin.Parameters.AddWithValue("@password", hashedPassword);                                                                                  
                         var statusBit = loginCollectorModel.status ? new BitArray(new[] { true }) : new BitArray(new[] { false });
 
-                        // Asignar el valor del parámetro como un array de bits
+                    
                         cmdLogin.Parameters.AddWithValue("@status", statusBit);
 
-
-
-                        // Obtener el id generado
+                 
                         loginCollectorId = (int)cmdLogin.ExecuteScalar();
                     }
 
-                    // Ahora insertar en la tabla collector usando el loginCollectorId
+               
                     string queryCollector = @"
-            INSERT INTO resigrass.collector (""nameCollector"", ""numberPhoneCollector"", ""dateCreationCollector"", ""status"", ""loginCollectorId"", ""typeCollectorId"")
-            VALUES (@nameCollector, @numberPhoneCollector, @dateCreationCollector, @status, @loginCollectorId, @typeCollectorId)
-            RETURNING *";
+                INSERT INTO resigrass.collector (""nameCollector"", ""numberPhoneCollector"", ""dateCreationCollector"", ""status"", ""loginCollectorId"", ""typeCollectorId"", ""profile_image"")
+                VALUES (@nameCollector, @numberPhoneCollector, @dateCreationCollector, @status, @loginCollectorId, @typeCollectorId, @profileImage)
+                RETURNING *";
 
                     using (var cmdCollector = new NpgsqlCommand(queryCollector, conn))
                     {
@@ -904,6 +901,9 @@ namespace ResiGrass_API.Logic
                         cmdCollector.Parameters.AddWithValue("@status", statusBit);
                         cmdCollector.Parameters.AddWithValue("@loginCollectorId", loginCollectorId);
                         cmdCollector.Parameters.AddWithValue("@typeCollectorId", collectorModel.typeCollectorId);
+
+                     
+                        cmdCollector.Parameters.AddWithValue("@profileImage", imageData ?? (object)DBNull.Value);
 
                         using (var reader = cmdCollector.ExecuteReader())
                         {
@@ -932,8 +932,9 @@ namespace ResiGrass_API.Logic
 
             return collectors;
         }
+        #endregion
 
-        // Función para hashear la contraseña
+        #region HashPassword
         private string HashPassword(string password)
         {
             using (SHA256 sha256 = SHA256.Create())
@@ -946,7 +947,7 @@ namespace ResiGrass_API.Logic
                 }
                 return builder.ToString();
             }
-        }
+        } 
         #endregion
 
         #region CollectorLoginGet
@@ -988,12 +989,12 @@ namespace ResiGrass_API.Logic
                             }
 
                             string queryCollector = @"
-                                    SELECT c.id, c.""nameCollector"", c.""numberPhoneCollector"", 
-                                           tc.""descriptionCollector""
-                                    FROM collector c
-                                    INNER JOIN ""typeCollector"" tc ON c.""typeCollectorId"" = tc.id
-                                    INNER JOIN ""loginCollector"" lc ON c.""loginCollectorId"" = lc.id
-                                    WHERE lc.""user"" = @user";
+                            SELECT c.id, c.""nameCollector"", c.""numberPhoneCollector"", 
+                                   tc.""descriptionCollector"", c.""profile_image""
+                            FROM collector c
+                            INNER JOIN ""typeCollector"" tc ON c.""typeCollectorId"" = tc.id
+                            INNER JOIN ""loginCollector"" lc ON c.""loginCollectorId"" = lc.id
+                            WHERE lc.""user"" = @user";
 
                             using (var cmdCollector = new NpgsqlCommand(queryCollector, conn))
                             {
@@ -1017,15 +1018,18 @@ namespace ResiGrass_API.Logic
                                         };
 
                                         
+                                        var profileImageBytes = collectorReader.IsDBNull(4) ? null : (byte[])collectorReader[4];
+
+                                        collectorData.profile_image = profileImageBytes != null ? Convert.ToBase64String(profileImageBytes) : null;
+
                                         collectorReader.Close();
 
-                                        
                                         string serialQuery = @"
-                                                SELECT ""serial_number""
-                                                FROM collection
-                                                WHERE ""collectorId"" = @collectorId
-                                                ORDER BY id DESC
-                                                LIMIT 1";
+                                        SELECT ""serial_number""
+                                        FROM collection
+                                        WHERE ""collectorId"" = @collectorId
+                                        ORDER BY id DESC
+                                        LIMIT 1";
 
                                         using (var serialCmd = new NpgsqlCommand(serialQuery, conn))
                                         {
@@ -1036,16 +1040,14 @@ namespace ResiGrass_API.Logic
 
                                             if (result != null)
                                             {
-                                                
                                                 var lastSerial = result.ToString();
                                                 var lastNumber = int.Parse(lastSerial.Split('-').Last());
                                                 nextSerial = $"RS-{collectorId:D2}-{(lastNumber + 1):D4}";
                                             }
                                             else
                                             {
-                                                
                                                 nextSerial = $"RS-{collectorId:D2}-0001";
-                                            }                                            
+                                            }
                                             collectorData.nextSerialNumber = nextSerial;
                                         }
 
@@ -1072,9 +1074,6 @@ namespace ResiGrass_API.Logic
 
             return response;
         }
-
-
-
         #endregion
 
         #region InsertCollection

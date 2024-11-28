@@ -41,14 +41,31 @@ namespace ResiGrass_API.Controllers
         [Authorize(AuthenticationSchemes = "Bearer")]
         public IActionResult CollectorCreation([FromBody] CollectorRequestModel requestModel)
         {
-            var collectorModel = requestModel.CollectorModel;
-            var loginCollectorModel = requestModel.LoginCollectorModel;
+            try
+            {
+                var collectorModel = requestModel.CollectorModel;
+                var loginCollectorModel = requestModel.LoginCollectorModel;
+                var profileImageBase64 = requestModel.ProfileImage;
 
-            var client = _dbQuery.InsertCollector(collectorModel, loginCollectorModel);
-            return Ok(client);
+                byte[] profileImageBytes = null;
+                if (!string.IsNullOrWhiteSpace(profileImageBase64))
+                {
+                    profileImageBytes = Convert.FromBase64String(profileImageBase64);
+                }
+                var client = _dbQuery.InsertCollector(collectorModel, loginCollectorModel, profileImageBytes);
+                return Ok(client);
+            }
+            catch (FormatException ex)
+            {
+                return BadRequest($"Formato inválido en la imagen Base64: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Error al crear el recolector: {ex.Message}");
+            }
         }
-
         #endregion
+
 
         #region ControllerLoginGet
         [HttpPost("ControllerLoginGet")]
@@ -95,6 +112,8 @@ namespace ResiGrass_API.Controllers
 
         #endregion
 
+        #region Email
+
         [HttpGet("test-email")]
         public async Task<IActionResult> TestEmail()
         {
@@ -114,7 +133,62 @@ namespace ResiGrass_API.Controllers
             {
                 return BadRequest($"Error al enviar el correo de prueba: {ex.Message}");
             }
-        } // PRUEBA PARA ENVIO DE EMAIL
+        }
+        #endregion
+
+        //#region TestCollectorCreation
+        //[HttpPost("TestCollectorCreation")]
+        //public IActionResult TestCollectorCreation()
+        //{
+        //    try
+        //    {
+                
+        //        string imagePath = "./images/ds.png";
+
+                
+        //        if (!System.IO.File.Exists(imagePath))
+        //        {
+        //            return BadRequest("La imagen especificada no existe en la ruta proporcionada.");
+        //        }
+
+                
+        //        byte[] imageBytes = System.IO.File.ReadAllBytes(imagePath);
+        //        string base64Image = Convert.ToBase64String(imageBytes);
+
+                
+        //        var requestModel = new CollectorRequestModel
+        //        {
+        //            CollectorModel = new CollectorModelInsert
+        //            {
+        //                nameCollector = "Prueba Local",
+        //                numberPhoneCollector = "123456789",
+        //                status = true,
+        //                loginCollectorId = 0,
+        //                typeCollectorId = 1,
+        //                dateCreationCollector = DateTime.Now
+        //            },
+        //            LoginCollectorModel = new loginCreationCollectorModel
+        //            {
+        //                user = "prueba.local",
+        //                password = "securePassword123",
+        //                status = true
+        //            },
+        //            ProfileImage = base64Image
+        //        };
+
+                
+        //        var response = CollectorCreation(requestModel);
+        //        return response;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return BadRequest($"Error al probar la creación del recolector: {ex.Message}");
+        //    }
+        //}
+        //#endregion
+
+
+
 
     }
 }
