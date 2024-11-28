@@ -242,7 +242,14 @@ namespace ResiGrass_API.Logic
                 {
                     conn.Open();
                     string query;
+                    if (IdClient == 0)
+                    { query = "SELECT * FROM \"client\" ";
+                    }
+                    else
+                    {
                     query = "SELECT * FROM \"client\" WHERE id = @id";
+                    }
+                    
                     using (var cmd = new NpgsqlCommand(query, conn))
                     {
                         cmd.Parameters.AddWithValue("@id", IdClient);
