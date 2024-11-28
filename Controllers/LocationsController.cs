@@ -30,7 +30,7 @@ namespace ResiGrass_API.Controllers
         #endregion
 
         #region Localities
-        [HttpPut("{idMunicipality}")]
+        [HttpGet("{idMunicipality}")]
         [Authorize(AuthenticationSchemes = "Bearer")]
         public IActionResult Localities(int idMunicipality)
         {
