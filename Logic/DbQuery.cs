@@ -29,7 +29,7 @@ namespace ResiGrass_API.Logic
                 {
                     conn.Open();
 
-                    using (var cmd = new NpgsqlCommand("SELECT * FROM municipality WHERE status != 0", conn))
+                    using (var cmd = new NpgsqlCommand("SELECT * FROM municipality WHERE CAST(status AS INTEGER) != 0;", conn))
                     {
                         using (var reader = cmd.ExecuteReader())
                         {
@@ -73,8 +73,19 @@ namespace ResiGrass_API.Logic
                 using (var conn = new NpgsqlConnection(_connectionString))
                 {
                     conn.Open();
+                    string query;
+                    if (idMunicipality == 0)
+                    {
+                        query =
+                            "SELECT *  FROM locality INNER JOIN municipality on locality.\"municipalityId\" = municipality.id ";
+                    }
+                    else
+                    {
+                        query =
+                            "SELECT *  FROM locality INNER JOIN municipality on locality.\"municipalityId\" = municipality.id WHERE \"municipalityId\" = @idMunicipality";
+                    }
 
-                    using (var cmd = new NpgsqlCommand("SELECT *  FROM locality INNER JOIN municipality on locality.\"municipalityId\" = municipality.id WHERE \"municipalityId\" = @idMunicipality", conn))
+                    using (var cmd = new NpgsqlCommand(query, conn))
                     {
                         cmd.Parameters.AddWithValue("@idMunicipality", idMunicipality);
                         using (var reader = cmd.ExecuteReader())
