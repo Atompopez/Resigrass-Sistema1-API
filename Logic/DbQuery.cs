@@ -194,7 +194,7 @@ namespace ResiGrass_API.Logic
                         {
                             while (reader.Read())
                             {
-                                if (!reader.IsDBNull(0) && !reader.IsDBNull(1) && !reader.IsDBNull(2) && !reader.IsDBNull(3) && !reader.IsDBNull(4) && !reader.IsDBNull(5) && !reader.IsDBNull(6) && !reader.IsDBNull(7) && !reader.IsDBNull(8))
+                                if (!reader.IsDBNull(0) )
                                 {
                                     var client = new ClientModel
                                     {
@@ -207,9 +207,9 @@ namespace ResiGrass_API.Logic
                                         typeBusinessId = reader.GetInt32(6),
                                         businessModelData = new TypeBusinessModel
                                         {
-                                            id = reader.GetInt32(7),
-                                            businnessDescription = reader.GetString(8),
-                                            status = reader.GetBoolean(9),
+                                            id = reader.GetInt32(8),
+                                            businnessDescription = reader.GetString(9),
+                                            status = reader.GetBoolean(10),
                                         }
                                     };
 
