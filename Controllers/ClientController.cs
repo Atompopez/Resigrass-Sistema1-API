@@ -28,7 +28,7 @@ namespace ResiGrass_API.Controllers
         #endregion
 
         #region GetClients
-        [HttpGet("/{idTypeBusiness}")]
+        [HttpGet("{idTypeBusiness}")]
         public IActionResult GetClients(int idTypeBusiness)
         {
             var client = _dbQuery.GetClients(idTypeBusiness);
