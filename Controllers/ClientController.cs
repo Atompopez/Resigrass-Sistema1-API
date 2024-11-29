@@ -24,7 +24,17 @@ namespace ResiGrass_API.Controllers
         {
             var typebusiness = _dbQuery.GetTypeBusiness();
             return Ok(typebusiness);
-        } 
+        }
+        #endregion
+
+        #region TypeBusinessCreation
+        [HttpPost("TypeBusinessCreation")]
+        [Authorize(AuthenticationSchemes = "Bearer")]
+        public IActionResult TypeBusinessCreation(TypeBusinessModel TypeBusiness)
+        {
+            var client = _dbQuery.InsertTypeBusiness(TypeBusiness);
+            return Ok(client);
+        }
         #endregion
 
         #region GetClients
