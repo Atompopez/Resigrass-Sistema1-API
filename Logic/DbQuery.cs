@@ -150,7 +150,7 @@ namespace ResiGrass_API.Logic
                                     var typeBusiness = new TypeBusinessModel
                                     {
                                         id = reader.GetInt32(0),
-                                        businnessDescription = reader.GetString(1),
+                                        businessDescription = reader.GetString(1),
                                         status = reader.GetBoolean(2)
                                     };
 
@@ -219,7 +219,7 @@ namespace ResiGrass_API.Logic
                                         businessModelData = new TypeBusinessModel
                                         {
                                             id = reader.GetInt32(8),
-                                            businnessDescription = reader.GetString(9),
+                                            businessDescription = reader.GetString(9),
                                             status = reader.GetBoolean(10),
                                         }
                                     };
@@ -350,6 +350,53 @@ namespace ResiGrass_API.Logic
             }
 
             return clients;
+        }
+
+
+        #endregion
+
+        #region TypeBusinessCreation
+        public List<TypeBusinessModel> InsertTypeBusiness(TypeBusinessModel TypeBusiness)
+        {
+            var typebusiness = new List<TypeBusinessModel>();
+
+            try
+            {
+                using (var conn = new NpgsqlConnection(_connectionString))
+                {
+                    conn.Open();
+                    string query = @"
+                INSERT INTO ""typeBusiness"" (""businessDescription"", ""status"")
+                VALUES (@businessDescription, @status)
+                RETURNING *";
+
+                    using (var cmd = new NpgsqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@businessDescription", TypeBusiness.businessDescription);
+                        cmd.Parameters.Add("@status", NpgsqlTypes.NpgsqlDbType.Bit).Value = TypeBusiness.status ? "1" : "0";
+
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                var Type = new TypeBusinessModel
+                                {
+                                    businessDescription = reader.GetString(1),
+                                    status = reader.GetBoolean(2),
+                                };
+                                typebusiness.Add(Type);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al insertar el cliente: {ex.Message}");
+                return new List<TypeBusinessModel>();
+            }
+
+            return typebusiness;
         }
 
 
