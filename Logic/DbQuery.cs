@@ -1106,11 +1106,11 @@ namespace ResiGrass_API.Logic
                                             {
                                                 var lastSerial = result.ToString();
                                                 var lastNumber = int.Parse(lastSerial.Split('-').Last());
-                                                nextSerial = $"RS-{collectorId:D2}-{(lastNumber + 1):D4}";
+                                                nextSerial = $"{(lastNumber + 1):D1}";
                                             }
                                             else
                                             {
-                                                nextSerial = $"RS-{collectorId:D2}-0001";
+                                                nextSerial = $"1";
                                             }
                                             collectorData.nextSerialNumber = nextSerial;
                                         }
@@ -1215,6 +1215,63 @@ namespace ResiGrass_API.Logic
         }
 
 
+        #endregion
+
+        #region GetAllCollections
+        public List<RecolectionModelInsert> GetAllCollections()
+        {
+            var collections = new List<RecolectionModelInsert>();
+
+            try
+            {
+                using (var conn = new NpgsqlConnection(_connectionString))
+                {
+                    conn.Open();
+
+                    string query = @"
+                SELECT 
+                    ""receivedDate"", ""endDate"", ""fullPayment"", ""priceUnit"", ""netWeight"",
+                    observations, ""receivedFull"", ""bowlEmpty"", ""collectorId"", 
+                    ""headquarterId"", ""measureId"", ""methodPaymentId"", ""productId"", ""serial_number""
+                FROM collection";
+
+                    using (var cmd = new NpgsqlCommand(query, conn))
+                    {
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                var collection = new RecolectionModelInsert
+                                {
+                                    receivedDate = reader.GetDateTime(0),
+                                    endDate = reader.GetDateTime(1),
+                                    fullPayment = reader.GetFloat(2),
+                                    priceUnit = reader.GetFloat(3),
+                                    netWeight = reader.GetFloat(4),
+                                    observations = reader.IsDBNull(5) ? null : reader.GetString(5),
+                                    receivedFull = reader.GetInt32(6),
+                                    bowlEmpty = reader.GetInt32(7),
+                                    collectorId = reader.GetInt32(8),
+                                    headquarterId = reader.GetInt32(9),
+                                    measureId = reader.GetInt32(10),
+                                    methodPaymentId = reader.GetInt32(11),
+                                    productId = reader.GetInt32(12),
+                                    serial_number = reader.IsDBNull(13) ? null : reader.GetString(13)
+                                };
+                                collections.Add(collection);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al obtener las recolecciones: {ex.Message}");
+                return new List<RecolectionModelInsert>();
+            }
+
+            return collections;
+        }
         #endregion
 
         #region Records
