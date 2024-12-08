@@ -187,11 +187,11 @@ namespace ResiGrass_API.Logic
 
                     if (idTypeBusiness == 0)
                     {
-                        query = "SELECT * FROM \"client\" INNER JOIN \"typeBusiness\" ON \"client\".\"typeBusinessId\" = \"typeBusiness\".id";
+                        query = "SELECT * FROM \"client\" INNER JOIN \"typeBusiness\"     ON \"client\".\"typeBusinessId\" = \"typeBusiness\".id WHERE \"client\".\"status\" = '1'";
                     }
                     else
                     {
-                        query = "SELECT * FROM \"client\" INNER JOIN \"typeBusiness\" ON \"client\".\"typeBusinessId\" = \"typeBusiness\".id WHERE \"typeBusinessId\" = @idTypeBusiness";
+                        query = "SELECT * FROM \"client\" INNER JOIN \"typeBusiness\" ON \"client\".\"typeBusinessId\" = \"typeBusiness\".id WHERE \"typeBusinessId\" = @idTypeBusiness AND  \"client\".\"status\" = '1' ";
                     }
 
                     using (var cmd = new NpgsqlCommand(query, conn))
@@ -205,7 +205,7 @@ namespace ResiGrass_API.Logic
                         {
                             while (reader.Read())
                             {
-                                if (!reader.IsDBNull(0) )
+                                if (!reader.IsDBNull(0))
                                 {
                                     var client = new ClientModel
                                     {
@@ -213,9 +213,8 @@ namespace ResiGrass_API.Logic
                                         nitCc = reader.GetString(1),
                                         nameClient = reader.GetString(2),
                                         dateCreationClient = reader.GetDateTime(3),
-                                        sign = reader.GetString(4),
-                                        status = reader.GetBoolean(5),
-                                        typeBusinessId = reader.GetInt32(6),
+                                        status = reader.GetBoolean(4),
+                                        typeBusinessId = reader.GetInt32(5),
                                         businessModelData = new TypeBusinessModel
                                         {
                                             id = reader.GetInt32(8),
