@@ -113,11 +113,24 @@ namespace ResiGrass_API.Controllers
 
         #region ColectionGet
         [HttpPost("ColectionGet")]
-        //  [Authorize(AuthenticationSchemes = "Bearer")]
+          [Authorize(AuthenticationSchemes = "Bearer")]
         public IActionResult ColectionGet()
         {
 
             var client = _dbQuery.GetAllCollections();
+
+            return Ok(client);
+        }
+
+        #endregion
+
+        #region AllCollectorsGet
+        [HttpPost("AllCollectorsGet")]
+        [Authorize(AuthenticationSchemes = "Bearer")]
+        public IActionResult AllCollectorsGet()
+        {
+
+            var client = _dbQuery.AllCollectorsGet();
 
             return Ok(client);
         }

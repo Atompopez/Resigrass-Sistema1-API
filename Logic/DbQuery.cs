@@ -4,6 +4,7 @@ using System.Text;
 using System.Security.Cryptography;
 using System.Collections;
 using DocumentFormat.OpenXml.Office.Word;
+using System.Data;
 
 
 
@@ -98,7 +99,6 @@ namespace ResiGrass_API.Logic
                                     {
                                         id = reader.GetInt32(0),
                                         nameLocality = reader.GetString(1),
-                                        status = reader.GetBoolean(2),
                                         municipalityId = reader.GetInt32(3),
                                         MunicipalityData = new MunicipalityModel
                                         {
@@ -267,7 +267,7 @@ namespace ResiGrass_API.Logic
                         {
                             while (reader.Read())
                             {
-                                if (!reader.IsDBNull(0) && !reader.IsDBNull(1) && !reader.IsDBNull(2) && !reader.IsDBNull(3) && !reader.IsDBNull(4) && !reader.IsDBNull(5) && !reader.IsDBNull(6))
+                                if (!reader.IsDBNull(0) )
                                 {
                                     var client = new ClientModel
                                     {
@@ -275,9 +275,9 @@ namespace ResiGrass_API.Logic
                                         nitCc = reader.GetString(1),
                                         nameClient = reader.GetString(2),
                                         dateCreationClient = reader.GetDateTime(3),
-                                        sign = reader.GetString(4),
-                                        status = reader.GetBoolean(5),
-                                        typeBusinessId = reader.GetInt32(6),
+                                        sign = reader.IsDBNull(6) ? null : Convert.ToBase64String(reader.GetFieldValue<byte[]>(6)),
+                                        status = reader.GetBoolean(4),
+                                        typeBusinessId = reader.GetInt32(5),
                                     };
                                     Client.Add(client);
                                 }
@@ -431,9 +431,18 @@ namespace ResiGrass_API.Logic
                         cmd.Parameters.AddWithValue("@nitCc", clientModel.nitCc);
                         cmd.Parameters.AddWithValue("@nameClient", clientModel.nameClient);
                         cmd.Parameters.AddWithValue("@dateCreationClient", DateTime.Now);
-                        cmd.Parameters.AddWithValue("@sign", clientModel.sign);
-                        cmd.Parameters.Add("@status", NpgsqlTypes.NpgsqlDbType.Bit).Value = clientModel.status ? "1" : "0";
+                        if (string.IsNullOrEmpty(clientModel.sign))
+                        {
+                            cmd.Parameters.AddWithValue("@signature_image", DBNull.Value);
+                        }
+                        else
+                        {
+                            byte[] signBytes = Convert.FromBase64String(clientModel.sign);
+                            cmd.Parameters.AddWithValue("@signature_image", NpgsqlTypes.NpgsqlDbType.Bytea, signBytes);
+                        }
+                        cmd.Parameters.AddWithValue("@status", clientModel.status);
                         cmd.Parameters.AddWithValue("@typeBusinessId", clientModel.typeBusinessId);
+
 
                         using (var reader = cmd.ExecuteReader())
                         {
@@ -444,13 +453,14 @@ namespace ResiGrass_API.Logic
                                     nitCc = reader.GetString(1),
                                     nameClient = reader.GetString(2),
                                     dateCreationClient = reader.GetDateTime(3),
-                                    sign = reader.GetString(4),
-                                    status = reader.GetBoolean(5),
-                                    typeBusinessId = reader.GetInt32(6),
+                                    status = reader.GetBoolean(4), 
+                                    typeBusinessId = reader.GetInt32(5),
+                                    sign = reader.IsDBNull(6) ? null : Convert.ToBase64String(reader.GetFieldValue<byte[]>(6))
                                 };
                                 clients.Add(client);
                             }
                         }
+
                     }
                 }
             }
@@ -480,11 +490,11 @@ namespace ResiGrass_API.Logic
 
                     if (clientId == 0 || idLocality == 0)
                     {
-                        query = "SELECT * FROM \"headquarter\" INNER JOIN \"client\" ON \"headquarter\".\"clientId\" = \"client\".id INNER JOIN \"locality\" ON \"headquarter\".\"localityId\" = \"locality\".id";
+                        query = "SELECT h.id, h.\"nameHeadquarter\", h.\"numberPhone\", h.\"address\", \r\n       h.\"localityId\", h.\"clientId\", l.\"nameLocality\", h.\"status\"\r\nFROM \"headquarter\" h\r\nINNER JOIN \"client\" c ON h.\"clientId\" = c.id\r\nINNER JOIN \"locality\" l ON h.\"localityId\" = l.id;\r\n";
                     }
                     else
                     {
-                        query = "SELECT * FROM \"headquarter\" INNER JOIN \"client\" ON \"headquarter\".\"clientId\" = \"client\".id INNER JOIN \"locality\" ON \"headquarter\".\"localityId\" = \"locality\".id WHERE \"clientId\" = @clientId AND \"localityId\" = @localityId";
+                        query = "SELECT h.id, h.\"nameHeadquarter\", h.\"numberPhone\", h.\"address\", \r\n       h.\"localityId\", h.\"clientId\", l.\"nameLocality\", h.\"status\"\r\nFROM \"headquarter\" h\r\nINNER JOIN \"client\" c ON h.\"clientId\" = c.id\r\nINNER JOIN \"locality\" l ON h.\"localityId\" = l.id;\r\n WHERE \"clientId\" = @clientId AND \"localityId\" = @localityId";
                     }
 
                     using (var cmd = new NpgsqlCommand(query, conn))
@@ -499,7 +509,7 @@ namespace ResiGrass_API.Logic
                         {
                             while (reader.Read())
                             {
-                                if (!reader.IsDBNull(0) && !reader.IsDBNull(1) && !reader.IsDBNull(2) && !reader.IsDBNull(3) && !reader.IsDBNull(4) && !reader.IsDBNull(5) && !reader.IsDBNull(6) && !reader.IsDBNull(7) && !reader.IsDBNull(8))
+                                if (!reader.IsDBNull(0) && !reader.IsDBNull(1) && !reader.IsDBNull(2) && !reader.IsDBNull(3) && !reader.IsDBNull(4) && !reader.IsDBNull(5) && !reader.IsDBNull(6) && !reader.IsDBNull(7) )
                                 {
                                     var headquarter = new HeadQuartersModelGet
                                     {
@@ -507,13 +517,13 @@ namespace ResiGrass_API.Logic
                                         nameHeadquarter = reader.GetString(1),
                                         numberPhone = reader.GetString(2),
                                         address = reader.GetString(3),
-                                        localityId = reader.GetInt32(8),
-                                        clientId = reader.GetString(10),
+                                        localityId = reader.GetInt32(4),
+                                        clientId = reader.GetInt32(5),
                                         localitiesData = new LocalitiesModelGet
                                         {
-                                            nameLocality = reader.GetString(17),
+                                            nameLocality = reader.GetString(6),
                                         }, 
-                                        status = reader.GetBoolean(5),
+                                        status = reader.GetFieldValue<bool>(7),
                                     };
 
                                     Headquarter.Add(headquarter);
@@ -1218,9 +1228,9 @@ namespace ResiGrass_API.Logic
         #endregion
 
         #region GetAllCollections
-        public List<RecolectionModelInsert> GetAllCollections()
+        public List<RecolectionModelStat> GetAllCollections()
         {
-            var collections = new List<RecolectionModelInsert>();
+            var collections = new List<RecolectionModelStat>();
 
             try
             {
@@ -1229,11 +1239,21 @@ namespace ResiGrass_API.Logic
                     conn.Open();
 
                     string query = @"
-                SELECT 
-                    ""receivedDate"", ""endDate"", ""fullPayment"", ""priceUnit"", ""netWeight"",
-                    observations, ""receivedFull"", ""bowlEmpty"", ""collectorId"", 
-                    ""headquarterId"", ""measureId"", ""methodPaymentId"", ""productId"", ""serial_number""
-                FROM collection";
+            SELECT 
+                c.""id"" AS Consecutivo,
+                cl.""id"" AS ClienteId, cl.""nameClient"" AS ClienteNombre,
+                h.""id"" AS SedeId, h.""nameHeadquarter"" AS SedeNombre,
+                c.""receivedDate"" AS Fecha,
+                c.""netWeight"" AS Cantidad,
+                m.""id"" AS MedidaId, m.""descriptionMeasure"" AS MedidaNombre,
+                col.""id"" AS RecolectorId, col.""nameCollector"" AS RecolectorNombre,
+                c.""fullPayment"" AS Pago,
+                c.""observations"" AS Observaciones
+            FROM collection c
+            INNER JOIN headquarter h ON c.""headquarterId"" = h.""id""
+            INNER JOIN client cl ON h.""clientId"" = cl.""id""
+            INNER JOIN measure m ON c.""measureId"" = m.""id""
+            INNER JOIN collector col ON c.""collectorId"" = col.""id""";
 
                     using (var cmd = new NpgsqlCommand(query, conn))
                     {
@@ -1241,23 +1261,25 @@ namespace ResiGrass_API.Logic
                         {
                             while (reader.Read())
                             {
-                                var collection = new RecolectionModelInsert
+                                var collection = new RecolectionModelStat
                                 {
-                                    receivedDate = reader.GetDateTime(0),
-                                    endDate = reader.GetDateTime(1),
-                                    fullPayment = reader.GetFloat(2),
-                                    priceUnit = reader.GetFloat(3),
-                                    netWeight = reader.GetFloat(4),
-                                    observations = reader.IsDBNull(5) ? null : reader.GetString(5),
-                                    receivedFull = reader.GetInt32(6),
-                                    bowlEmpty = reader.GetInt32(7),
-                                    collectorId = reader.GetInt32(8),
-                                    headquarterId = reader.GetInt32(9),
-                                    measureId = reader.GetInt32(10),
-                                    methodPaymentId = reader.GetInt32(11),
-                                    productId = reader.GetInt32(12),
-                                    serial_number = reader.IsDBNull(13) ? null : reader.GetString(13)
+                                    Consecutivo = reader.GetInt32(reader.GetOrdinal("Consecutivo")),
+                                    ClienteId = reader.GetInt32(reader.GetOrdinal("ClienteId")),
+                                    ClienteNombre = reader.GetString(reader.GetOrdinal("ClienteNombre")),
+                                    SedeId = reader.GetInt32(reader.GetOrdinal("SedeId")),
+                                    SedeNombre = reader.GetString(reader.GetOrdinal("SedeNombre")),
+                                    Fecha = reader.GetDateTime(reader.GetOrdinal("Fecha")),
+                                    Cantidad = reader.GetFloat(reader.GetOrdinal("Cantidad")),
+                                    MedidaId = reader.GetInt32(reader.GetOrdinal("MedidaId")),
+                                    MedidaNombre = reader.GetString(reader.GetOrdinal("MedidaNombre")),
+                                    RecolectorId = reader.GetInt32(reader.GetOrdinal("RecolectorId")),
+                                    RecolectorNombre = reader.GetString(reader.GetOrdinal("RecolectorNombre")),
+                                    Pago = reader.GetFloat(reader.GetOrdinal("Pago")),
+                                    Observaciones = reader.IsDBNull(reader.GetOrdinal("Observaciones"))
+                                                    ? null
+                                                    : reader.GetString(reader.GetOrdinal("Observaciones"))
                                 };
+
                                 collections.Add(collection);
                             }
                         }
@@ -1267,10 +1289,57 @@ namespace ResiGrass_API.Logic
             catch (Exception ex)
             {
                 Console.WriteLine($"Error al obtener las recolecciones: {ex.Message}");
-                return new List<RecolectionModelInsert>();
             }
 
             return collections;
+        }
+        #endregion
+
+        #region GetAllCollections
+        public List<CollectorsModel> AllCollectorsGet()
+        {
+            var Collectors = new List<CollectorsModel>();
+
+            try
+            {
+                using (var conn = new NpgsqlConnection(_connectionString))
+                {
+                    conn.Open();
+
+                    string query = @"
+                                    SELECT id, ""nameCollector"", ""numberPhoneCollector"", ""dateCreationCollector"", status, ""loginCollectorId"", ""typeCollectorId"", profile_image
+	                                    FROM resigrass.collector;";
+
+                    using (var cmd = new NpgsqlCommand(query, conn))
+                    {
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                var collection = new CollectorsModel
+                                {
+                                    id = reader.GetInt32(0),
+                                    nameCollector = reader.GetString(1),
+                                    numberPhoneCollector = reader.GetString(2),
+                                    dateCreationCollector = reader.GetDateTime(3),
+                                    status = reader.GetBoolean(4)
+                                   };
+
+                                var profileImageBytes = reader.IsDBNull(7) ? null : (byte[])reader[7];
+
+                                collection.profile_image = profileImageBytes != null ? Convert.ToBase64String(profileImageBytes) : null;
+                                Collectors.Add(collection);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al obtener las recolecciones: {ex.Message}");
+            }
+
+            return Collectors;
         }
         #endregion
 
