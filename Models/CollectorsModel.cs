@@ -5,13 +5,12 @@
     {
 
         public int id { get; set; }
-        public TypeCollectorsModel? typeCollectorsModelId { get; set; }
-        public UserAdminModel? loginCollectorModelId { get; set; }
         public  string nameCollector {  get; set; }
         public  string numberPhoneCollector { get; set; }
+        public string profile_image { get; set; }
         public  bool status {  get; set; }
-        public  int loginCollectorId { get; set; }
-        public  int typeCollectorId { get; set; }
+        //public  int loginCollectorId { get; set; }
+        //public  int typeCollectorId { get; set; }
         public  DateTime dateCreationCollector { get; set; }
 
     }   
