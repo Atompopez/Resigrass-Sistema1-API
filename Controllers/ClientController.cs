@@ -39,6 +39,7 @@ namespace ResiGrass_API.Controllers
 
         #region GetClients
         [HttpGet("{idTypeBusiness}")]
+        //[Authorize(AuthenticationSchemes = "Bearer")]
         public IActionResult GetClients(int idTypeBusiness)
         {
             var client = _dbQuery.GetClients(idTypeBusiness);
@@ -58,7 +59,7 @@ namespace ResiGrass_API.Controllers
 
         #region ClientUpdate
         [HttpPut("ClientUpdate/{IdClient}")]
-        [Authorize(AuthenticationSchemes = "Bearer")]
+     //   [Authorize(AuthenticationSchemes = "Bearer")]
         public IActionResult ClientUpdate(int IdClient, [FromBody] ClientModelInsert clientModel)
         {
             var existingClient = _dbQuery.GetClient(IdClient);

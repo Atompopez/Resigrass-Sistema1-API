@@ -417,7 +417,7 @@ namespace ResiGrass_API.Logic
                 ""nitCc"" = @nitCc,
                 ""nameClient"" = @nameClient, 
                 ""dateCreationClient"" = @dateCreationClient, 
-                ""sign"" = @sign, 
+                ""signature_image"" = @signature_image, 
                 ""status"" = @status, 
                 ""typeBusinessId"" = @typeBusinessId
             WHERE 
@@ -440,7 +440,7 @@ namespace ResiGrass_API.Logic
                             byte[] signBytes = Convert.FromBase64String(clientModel.sign);
                             cmd.Parameters.AddWithValue("@signature_image", NpgsqlTypes.NpgsqlDbType.Bytea, signBytes);
                         }
-                        cmd.Parameters.AddWithValue("@status", clientModel.status);
+                        cmd.Parameters.Add("@status", NpgsqlTypes.NpgsqlDbType.Bit).Value = clientModel.status ? "1" : "0";
                         cmd.Parameters.AddWithValue("@typeBusinessId", clientModel.typeBusinessId);
 
 
