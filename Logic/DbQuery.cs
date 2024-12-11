@@ -1238,17 +1238,19 @@ namespace ResiGrass_API.Logic
                 {
                     conn.Open();
 
+                    // Modificación: Añadimos el campo serial_number en la consulta
                     string query = @"
             SELECT 
-                c.""id"" AS Consecutivo,
-                cl.""id"" AS ClienteId, cl.""nameClient"" AS ClienteNombre,
-                h.""id"" AS SedeId, h.""nameHeadquarter"" AS SedeNombre,
-                c.""receivedDate"" AS Fecha,
+                c.""id"" AS Id,
+                cl.""id"" AS ClienteId, cl.""nameClient"" AS nameClient,
+                h.""id"" AS HeadquarterId, h.""nameHeadquarter"" AS NameHeadquarter,
+                c.""receivedDate"" AS Date,
                 c.""netWeight"" AS Cantidad,
-                m.""id"" AS MedidaId, m.""descriptionMeasure"" AS MedidaNombre,
+                m.""id"" AS MedidaId, m.""abbreviation"" AS MedidaNombre,
                 col.""id"" AS RecolectorId, col.""nameCollector"" AS RecolectorNombre,
                 c.""fullPayment"" AS Pago,
-                c.""observations"" AS Observaciones
+                c.""observations"" AS Observaciones,
+                c.""serial_number"" AS Serial  
             FROM collection c
             INNER JOIN headquarter h ON c.""headquarterId"" = h.""id""
             INNER JOIN client cl ON h.""clientId"" = cl.""id""
@@ -1263,21 +1265,22 @@ namespace ResiGrass_API.Logic
                             {
                                 var collection = new RecolectionModelStat
                                 {
-                                    Consecutivo = reader.GetInt32(reader.GetOrdinal("Consecutivo")),
+                                    Id = reader.GetInt32(reader.GetOrdinal("Id")),
                                     ClienteId = reader.GetInt32(reader.GetOrdinal("ClienteId")),
-                                    ClienteNombre = reader.GetString(reader.GetOrdinal("ClienteNombre")),
-                                    SedeId = reader.GetInt32(reader.GetOrdinal("SedeId")),
-                                    SedeNombre = reader.GetString(reader.GetOrdinal("SedeNombre")),
-                                    Fecha = reader.GetDateTime(reader.GetOrdinal("Fecha")),
-                                    Cantidad = reader.GetFloat(reader.GetOrdinal("Cantidad")),
-                                    MedidaId = reader.GetInt32(reader.GetOrdinal("MedidaId")),
-                                    MedidaNombre = reader.GetString(reader.GetOrdinal("MedidaNombre")),
-                                    RecolectorId = reader.GetInt32(reader.GetOrdinal("RecolectorId")),
-                                    RecolectorNombre = reader.GetString(reader.GetOrdinal("RecolectorNombre")),
-                                    Pago = reader.GetFloat(reader.GetOrdinal("Pago")),
-                                    Observaciones = reader.IsDBNull(reader.GetOrdinal("Observaciones"))
+                                    nameClient = reader.GetString(reader.GetOrdinal("nameClient")),
+                                    HeadquarterId = reader.GetInt32(reader.GetOrdinal("HeadquarterId")),
+                                    NameHeadquarter = reader.GetString(reader.GetOrdinal("NameHeadquarter")),
+                                    Date = reader.GetDateTime(reader.GetOrdinal("Date")),
+                                    Amount = reader.GetFloat(reader.GetOrdinal("Cantidad")),
+                                    MeasureId = reader.GetInt32(reader.GetOrdinal("MedidaId")),
+                                    NameMeasure = reader.GetString(reader.GetOrdinal("MedidaNombre")),
+                                    CollectorId = reader.GetInt32(reader.GetOrdinal("RecolectorId")),
+                                    NameCollector = reader.GetString(reader.GetOrdinal("RecolectorNombre")),
+                                    fullPayment = reader.GetFloat(reader.GetOrdinal("Pago")),
+                                    Observations = reader.IsDBNull(reader.GetOrdinal("Observaciones"))
                                                     ? null
-                                                    : reader.GetString(reader.GetOrdinal("Observaciones"))
+                                                    : reader.GetString(reader.GetOrdinal("Observaciones")),
+                                    Serial = reader.GetString(reader.GetOrdinal("Serial")) // Asignación del serial
                                 };
 
                                 collections.Add(collection);
@@ -1295,7 +1298,45 @@ namespace ResiGrass_API.Logic
         }
         #endregion
 
-        #region GetAllCollections
+        #region UpdateCollection
+        public bool UpdateCollection(int collectionId, float newPayment, float newWeight)
+        {
+            bool isUpdated = false;
+
+            try
+            {
+                using (var conn = new NpgsqlConnection(_connectionString))
+                {
+                    conn.Open();
+
+                    string query = @"
+                UPDATE collection
+                SET ""fullPayment"" = @newPayment, 
+                    ""netWeight"" = @newWeight
+                WHERE ""id"" = @collectionId";
+
+                    using (var cmd = new NpgsqlCommand(query, conn))
+                    {
+
+                        cmd.Parameters.AddWithValue("@newPayment", newPayment);
+                        cmd.Parameters.AddWithValue("@newWeight", newWeight);
+                        cmd.Parameters.AddWithValue("@collectionId", collectionId);
+
+                        int rowsAffected = cmd.ExecuteNonQuery();
+                        isUpdated = rowsAffected > 0;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al actualizar la recolección: {ex.Message}");
+            }
+
+            return isUpdated; 
+        }
+        #endregion
+
+        #region GetAllCollectors
         public List<CollectorsModel> AllCollectorsGet()
         {
             var Collectors = new List<CollectorsModel>();

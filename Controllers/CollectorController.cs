@@ -111,6 +111,36 @@ namespace ResiGrass_API.Controllers
 
         #endregion
 
+        #region UpdateCollection
+        [HttpPut("UpdateCollection")]
+        [Authorize(AuthenticationSchemes = "Bearer")]
+        public IActionResult UpdateCollection([FromBody] UpdateCollectionModel updateModel)
+        {
+            try
+            {                
+                if (updateModel == null || updateModel.CollectionId <= 0)
+                {
+                    return BadRequest("Datos inválidos para actualizar la recolección.");
+                }
+
+                var isUpdated = _dbQuery.UpdateCollection(updateModel.CollectionId, updateModel.FullPayment, updateModel.NetWeight);
+
+                if (isUpdated)
+                {
+                    return Ok(new { message = "Recolección actualizada correctamente." });
+                }
+                else
+                {
+                    return NotFound(new { message = "No se encontró la recolección a actualizar." });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = $"Error al actualizar la recolección: {ex.Message}" });
+            }
+        }
+        #endregion
+
         #region ColectionGet
         [HttpPost("ColectionGet")]
           [Authorize(AuthenticationSchemes = "Bearer")]
