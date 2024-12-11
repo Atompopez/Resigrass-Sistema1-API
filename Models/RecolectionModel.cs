@@ -57,19 +57,20 @@ namespace ResiGrass_API.Models
 
     public class RecolectionModelStat
     {
-        public int Consecutivo { get; set; }
+        public int Id { get; set; }
         public int ClienteId { get; set; }
-        public string ClienteNombre { get; set; }
-        public int SedeId { get; set; }
-        public string SedeNombre { get; set; }
-        public DateTime Fecha { get; set; }
-        public float Cantidad { get; set; }
-        public int MedidaId { get; set; }
-        public string MedidaNombre { get; set; }
-        public int RecolectorId { get; set; }
-        public string RecolectorNombre { get; set; }
-        public float Pago { get; set; }
-        public string Observaciones { get; set; }
+        public string nameClient { get; set; }
+        public int HeadquarterId { get; set; }
+        public string NameHeadquarter { get; set; }
+        public DateTime Date { get; set; }
+        public float Amount { get; set; }
+        public int MeasureId { get; set; }
+        public string NameMeasure { get; set; }
+        public int CollectorId { get; set; }
+        public string NameCollector { get; set; }
+        public float fullPayment { get; set; }
+        public string Observations { get; set; }
+        public string Serial { get; set; }
     }
 
 

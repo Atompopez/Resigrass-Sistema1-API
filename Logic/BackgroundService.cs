@@ -162,7 +162,7 @@ namespace ResiGrass_API.Logic
                 sb.Append("<ul>");
               //  sb.AppendFormat("<li>Nombre del generador: {0}</li>", record.collectedName);
                 sb.AppendFormat("<li>Kilogramos recibidos: {0}</li>", record.netWeight);
-                sb.AppendFormat("<li>Fecha de recolección: {0}</li>", record.receivedDate.ToShortDateString());
+                sb.AppendFormat("<li>Date de recolección: {0}</li>", record.receivedDate.ToShortDateString());
                 sb.Append("</ul>");
                 sb.Append("<p>Gracias por su atención.</p>");
 

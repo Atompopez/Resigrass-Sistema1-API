@@ -50,4 +50,13 @@
         public loginCreationCollectorModel LoginCollectorModel { get; set; }
     }
 
+
+    public class UpdateCollectionModel
+    {
+        public int CollectionId { get; set; } // ID de la recolección a actualizar
+        public float FullPayment { get; set; } // Nuevo valor del pago
+        public float NetWeight { get; set; }   // Nuevo valor del peso
+    }
+
+
 }
