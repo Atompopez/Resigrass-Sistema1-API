@@ -126,6 +126,60 @@ namespace ResiGrass_API.Logic
 
             return localities;
         }
+        #endregion
+
+        #region Localities
+        public List<CollectorsModel> GetToken(int id)
+        {
+            var Collector = new List<CollectorsModel>();
+
+            try
+            {
+                using (var conn = new NpgsqlConnection(_connectionString))
+                {
+                    conn.Open();
+                    string  query = "SELECT id, \"nameCollector\", \"numberPhoneCollector\", \"dateCreationCollector\", status, \"loginCollectorId\", \"typeCollectorId\", profile_image\r\n\tFROM resigrass.collector WHERE id = @id ";
+
+
+                    using (var cmd = new NpgsqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@id", id);
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                if (!reader.IsDBNull(0) && !reader.IsDBNull(1) && !reader.IsDBNull(2))
+                                {
+                                    var collector = new CollectorsModel
+                                    {
+                                        id = reader.GetInt32(0),
+                                        nameCollector = reader.GetString(1),
+                                        numberPhoneCollector = reader.GetString(2),                                       
+                                        status = reader.GetBoolean(4),
+                                        dateCreationCollector = reader.GetDateTime(3),
+
+                                    };
+                                    var profileImageBytes = reader.IsDBNull(7) ? null : (byte[])reader[7];
+
+                                    collector.profile_image = profileImageBytes != null ? Convert.ToBase64String(profileImageBytes) : null;
+
+                                    Collector.Add(collector);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+
+                Console.WriteLine($"Error al obtener las localidades: {ex.Message}");
+
+                return new List<CollectorsModel>();
+            }
+
+            return Collector;
+        }
         #endregion 
 
         #region TypeBusiness

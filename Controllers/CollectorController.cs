@@ -191,26 +191,37 @@ namespace ResiGrass_API.Controllers
         }
         #endregion
 
+        #region TokenLanding
+        [HttpGet("GetCollectorLandig/{id}")]
+     //   [Authorize(AuthenticationSchemes = "Bearer")]
+        public IActionResult CollectorToken(int id)
+        {
+            var collector = _dbQuery.GetToken(id);
+            return Ok(collector);
+        }
+
+        #endregion
+
         //#region TestCollectorCreation
         //[HttpPost("TestCollectorCreation")]
         //public IActionResult TestCollectorCreation()
         //{
         //    try
         //    {
-                
+
         //        string imagePath = "./images/ds.png";
 
-                
+
         //        if (!System.IO.File.Exists(imagePath))
         //        {
         //            return BadRequest("La imagen especificada no existe en la ruta proporcionada.");
         //        }
 
-                
+
         //        byte[] imageBytes = System.IO.File.ReadAllBytes(imagePath);
         //        string base64Image = Convert.ToBase64String(imageBytes);
 
-                
+
         //        var requestModel = new CollectorRequestModel
         //        {
         //            CollectorModel = new CollectorModelInsert
@@ -231,7 +242,7 @@ namespace ResiGrass_API.Controllers
         //            ProfileImage = base64Image
         //        };
 
-                
+
         //        var response = CollectorCreation(requestModel);
         //        return response;
         //    }
