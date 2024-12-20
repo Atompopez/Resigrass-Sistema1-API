@@ -23,7 +23,8 @@ namespace ResiGrass_API.Models
         public required float priceUnit { get; set; }
         public required float netWeight { get; set; }
         public required string observations { get; set; }
-        
+
+        public string email { get; set; } 
 
 
     }

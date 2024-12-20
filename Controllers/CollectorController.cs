@@ -66,6 +66,47 @@ namespace ResiGrass_API.Controllers
         }
         #endregion
 
+        #region ControllerUpdate
+        [HttpPut("UpdateCollector/{id}")]
+        [Authorize(AuthenticationSchemes = "Bearer")]
+        public IActionResult UpdateCollector(int id, [FromBody] CollectorModelUpdate requestModel)
+        {
+            try
+            {
+                // Validar que el modelo de actualización no sea nulo
+                if (requestModel == null)
+                    return BadRequest("El modelo de actualización no puede ser nulo.");
+
+                // Convertir la imagen Base64 a bytes (si existe)
+                byte[] profileImageBytes = null;
+                if (!string.IsNullOrWhiteSpace(requestModel.ProfileImageBase64))
+                {
+                    try
+                    {
+                        profileImageBytes = Convert.FromBase64String(requestModel.ProfileImageBase64);
+                    }
+                    catch (FormatException)
+                    {
+                        return BadRequest("Formato inválido en la imagen Base64.");
+                    }
+                }
+
+                // Llamar al método de actualización
+                bool isUpdated = _dbQuery.UpdateCollector(id, requestModel, profileImageBytes);
+
+                // Verificar si se actualizó correctamente
+                if (isUpdated)
+                    return Ok($"Recolector con ID {id} actualizado correctamente.");
+                else
+                    return NotFound($"No se encontró el recolector con ID {id} o no se pudo actualizar.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error interno al actualizar el recolector: {ex.Message}");
+            }
+        }
+        #endregion
+
         #region ControllerLoginGet
         [HttpPost("ControllerLoginGet")]
         public IActionResult CollectControllerLoginGetorCreation([FromBody] loginCreationCollectorModelValidate LoginCollector)
@@ -167,26 +208,47 @@ namespace ResiGrass_API.Controllers
 
         #endregion
 
-        #region Email
-
-        [HttpGet("test-email")]
-        public async Task<IActionResult> TestEmail()
+        #region Mail
+        [HttpPost("receive-collection")]
+        public async Task<IActionResult> ReceiveCollection([FromBody] List<int> recolectionIds)
         {
             try
             {
-                var testClients = new List<RecolectionModel>
-        {
-            new RecolectionModel {  id = 2, bowlEmpty = 1,  headquarterId = 1, netWeight = 10, priceUnit = 10,endDate = DateTime.Now , fullPayment = 10,
-            observations = "dsfdf", receivedDate = DateTime.Now , receivedFull = 10 }
-        };
+                if (recolectionIds == null || !recolectionIds.Any())
+                {
+                    return BadRequest("La lista de IDs de recolecciones está vacía o es inválida.");
+                }
 
-                await bk.SendNotificationsAsync();
+                var records = new List<RecolectionModel>();
 
-                return Ok("Correo de prueba enviado correctamente.");
+                foreach (var id in recolectionIds)
+                {
+                    var record = _dbQuery.GetRecolectionById(id);
+                    if (record != null)
+                    {
+                        records.Add(record);
+                    }
+                }
+
+                if (!records.Any())
+                {
+                    return NotFound("No se encontraron recolecciones para los IDs proporcionados.");
+                }
+
+            
+                await bk.SendEmailAsync(records);
+
+               
+                foreach (var record in records)
+                {
+                    _dbQuery.MarkAsSent(record.id);
+                }
+
+                return Ok("Recolección recibida y notificaciones enviadas.");
             }
             catch (Exception ex)
             {
-                return BadRequest($"Error al enviar el correo de prueba: {ex.Message}");
+                return StatusCode(500, $"Error al recibir la recolección: {ex.Message}");
             }
         }
         #endregion
@@ -202,58 +264,7 @@ namespace ResiGrass_API.Controllers
 
         #endregion
 
-        //#region TestCollectorCreation
-        //[HttpPost("TestCollectorCreation")]
-        //public IActionResult TestCollectorCreation()
-        //{
-        //    try
-        //    {
-
-        //        string imagePath = "./images/ds.png";
-
-
-        //        if (!System.IO.File.Exists(imagePath))
-        //        {
-        //            return BadRequest("La imagen especificada no existe en la ruta proporcionada.");
-        //        }
-
-
-        //        byte[] imageBytes = System.IO.File.ReadAllBytes(imagePath);
-        //        string base64Image = Convert.ToBase64String(imageBytes);
-
-
-        //        var requestModel = new CollectorRequestModel
-        //        {
-        //            CollectorModel = new CollectorModelInsert
-        //            {
-        //                nameCollector = "Prueba Local",
-        //                numberPhoneCollector = "123456789",
-        //                status = true,
-        //                loginCollectorId = 0,
-        //                typeCollectorId = 1,
-        //                dateCreationCollector = DateTime.Now
-        //            },
-        //            LoginCollectorModel = new loginCreationCollectorModel
-        //            {
-        //                user = "prueba.local",
-        //                password = "securePassword123",
-        //                status = true
-        //            },
-        //            ProfileImage = base64Image
-        //        };
-
-
-        //        var response = CollectorCreation(requestModel);
-        //        return response;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return BadRequest($"Error al probar la creación del recolector: {ex.Message}");
-        //    }
-        //}
-        //#endregion
-
-
+  
 
 
     }

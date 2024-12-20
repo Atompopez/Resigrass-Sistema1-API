@@ -56,39 +56,41 @@ namespace ResiGrass_API.Logic
         {
             try
             {
-                var smtpClient = new SmtpClient("smtp.gmail.com")
+                var smtpClient = new SmtpClient("smtp.office365.com")
                 {
                     Port = 587,
-                    Credentials = new NetworkCredential("nuntius.diecinueve@fiscalia.gov.co", "Fiscalia@202."),
+                    Credentials = new NetworkCredential("Resigrass@hotmail.com", "REsi2019grass"),
                     EnableSsl = true,
                 };
 
                 foreach (var record in records)
                 {
+                    if (string.IsNullOrEmpty(record.email))
+                    {
+                        _logger.LogWarning($"El registro con ID {record.collectorId} no tiene un correo configurado.");
+                        continue;
+                    }
+
                     string emailBody = CreateEmailBody(record);
 
                     var mailMessage = new MailMessage
                     {
-                        From = new MailAddress("davidsant2188@gmail.com"),
+                        From = new MailAddress("Resigrass@hotmail.com"),
                         Subject = "Notificación de registros a dos días",
                         Body = emailBody,
                         IsBodyHtml = true,
                     };
 
-                    mailMessage.To.Add("johanandrey0210@gmail.com");
+                    mailMessage.To.Add(record.email);
 
                     string filePath = GenerateWordDocument(record);
-                    if (filePath != null)
+                    if (!string.IsNullOrEmpty(filePath))
                     {
-                        Attachment attachment = new Attachment(filePath);
-                        mailMessage.Attachments.Add(attachment);
-                    }
-                    else
-                    {
-                        _logger.LogWarning($"No se pudo generar el documento para el registro con ID {record.id}.");
+                        mailMessage.Attachments.Add(new Attachment(filePath));
                     }
 
                     await smtpClient.SendMailAsync(mailMessage);
+                    _logger.LogInformation($"Correo enviado a {record.email} para el registro con ID {record.collectorId}.");
                 }
             }
             catch (Exception ex)
@@ -96,6 +98,7 @@ namespace ResiGrass_API.Logic
                 _logger.LogError($"Error al enviar el correo: {ex.Message}");
             }
         }
+
         #endregion
 
         #region GenerateWordDocument

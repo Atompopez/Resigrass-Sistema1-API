@@ -41,6 +41,15 @@
 
     }
 
+    public class CollectorModelUpdate
+    {
+        public string nameCollector { get; set; }
+        public string numberPhoneCollector { get; set; }
+        public bool status { get; set; }
+        public int typeCollectorId { get; set; }
+        public string ProfileImageBase64 { get; set; } // Imagen en formato Base64
+    }
+
 
 
     public class CollectorRequestModel
