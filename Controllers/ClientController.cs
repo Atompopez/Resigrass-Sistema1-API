@@ -91,7 +91,7 @@ namespace ResiGrass_API.Controllers
 
         #region GetHeadquarters
         [HttpGet("{clientId}/{idLocality}/GetHeadquarters")]
-        [Authorize(AuthenticationSchemes = "Bearer")]
+   //     [Authorize(AuthenticationSchemes = "Bearer")]
         public IActionResult GetHeadquarters(int clientId, int idLocality)
         {
             var client = _dbQuery.GetHeadquarters(clientId, idLocality);

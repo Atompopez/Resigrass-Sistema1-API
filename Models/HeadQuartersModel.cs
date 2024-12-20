@@ -22,6 +22,7 @@
         public int clientId { get; set; }
         public string address { get; set; }
         public bool status { get; set; }
+        public string email { get; set; }
         public required string nameHeadquarter { get; set; }
         public LocalitiesModelGet? localitiesData { get; set; }                
     }
@@ -33,6 +34,7 @@
         public required string nameHeadquarter { get; set; }
         public required int clientId { get; set; }
         public required string address { get; set; }
+        public  string email { get; set; }
         public required DateTime dateCreationHeadquarter { get; set; }
         public required bool status { get; set; }
     }

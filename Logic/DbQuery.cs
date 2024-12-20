@@ -5,6 +5,8 @@ using System.Security.Cryptography;
 using System.Collections;
 using DocumentFormat.OpenXml.Office.Word;
 using System.Data;
+using DocumentFormat.OpenXml.Drawing.Diagrams;
+using static IdentityServer4.Models.IdentityResources;
 
 
 
@@ -230,27 +232,41 @@ namespace ResiGrass_API.Logic
         #region Client
         public List<ClientModel> GetClients(int idTypeBusiness)
         {
-            var Client = new List<ClientModel>();
+            var clients = new List<ClientModel>();
 
             try
             {
                 using (var conn = new NpgsqlConnection(_connectionString))
                 {
                     conn.Open();
-                    string query;
 
+                   
+                    string query = @"
+                SELECT c.""id"", c.""nitCc"", c.""nameClient"", c.""dateCreationClient"", 
+                       c.""status"", c.""typeBusinessId"",
+                       t.""id"", t.""businessDescription"", t.""status""
+                FROM ""client"" c
+                INNER JOIN ""typeBusiness"" t ON c.""typeBusinessId"" = t.""id""
+            ";
+
+                    
                     if (idTypeBusiness == 0)
+                    {                    
+                        query += @" WHERE c.""status"" = '1'";
+                    }
+                    else if (idTypeBusiness == -1)
                     {
-                        query = "SELECT * FROM \"client\" INNER JOIN \"typeBusiness\"     ON \"client\".\"typeBusinessId\" = \"typeBusiness\".id WHERE \"client\".\"status\" = '1'";
+  
                     }
                     else
-                    {
-                        query = "SELECT * FROM \"client\" INNER JOIN \"typeBusiness\" ON \"client\".\"typeBusinessId\" = \"typeBusiness\".id WHERE \"typeBusinessId\" = @idTypeBusiness AND  \"client\".\"status\" = '1' ";
+                    {              
+                        query += @" WHERE c.""typeBusinessId"" = @idTypeBusiness AND c.""status"" = '1'";
                     }
 
                     using (var cmd = new NpgsqlCommand(query, conn))
                     {
-                        if (idTypeBusiness != 0)
+                      
+                        if (idTypeBusiness > 0)
                         {
                             cmd.Parameters.AddWithValue("idTypeBusiness", idTypeBusiness);
                         }
@@ -259,26 +275,23 @@ namespace ResiGrass_API.Logic
                         {
                             while (reader.Read())
                             {
-                                if (!reader.IsDBNull(0))
+                                var client = new ClientModel
                                 {
-                                    var client = new ClientModel
+                                    id = reader.GetInt32(0),
+                                    nitCc = reader.GetString(1),
+                                    nameClient = reader.GetString(2),
+                                    dateCreationClient = reader.GetDateTime(3),
+                                    status = reader.GetBoolean(4),
+                                    typeBusinessId = reader.GetInt32(5),
+                                    businessModelData = new TypeBusinessModel
                                     {
-                                        id = reader.GetInt32(0),
-                                        nitCc = reader.GetString(1),
-                                        nameClient = reader.GetString(2),
-                                        dateCreationClient = reader.GetDateTime(3),
-                                        status = reader.GetBoolean(4),
-                                        typeBusinessId = reader.GetInt32(5),
-                                        businessModelData = new TypeBusinessModel
-                                        {
-                                            id = reader.GetInt32(8),
-                                            businessDescription = reader.GetString(9),
-                                            status = reader.GetBoolean(10),
-                                        }
-                                    };
+                                        id = reader.GetInt32(6),
+                                        businessDescription = reader.GetString(7),
+                                        status = reader.GetBoolean(8)
+                                    }
+                                };
 
-                                    Client.Add(client);
-                                }
+                                clients.Add(client);
                             }
                         }
                     }
@@ -286,13 +299,12 @@ namespace ResiGrass_API.Logic
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al obtener los tipos de negocio: {ex}");
+                Console.WriteLine($"Error al obtener los clientes: {ex.Message}");
                 return new List<ClientModel>();
             }
 
-            return Client;
+            return clients;
         }
-
         #endregion
 
         #region ClientGet
@@ -328,8 +340,7 @@ namespace ResiGrass_API.Logic
                                         id = reader.GetInt32(0),
                                         nitCc = reader.GetString(1),
                                         nameClient = reader.GetString(2),
-                                        dateCreationClient = reader.GetDateTime(3),
-                                        sign = reader.IsDBNull(6) ? null : Convert.ToBase64String(reader.GetFieldValue<byte[]>(6)),
+                                        dateCreationClient = reader.GetDateTime(3),                                        
                                         status = reader.GetBoolean(4),
                                         typeBusinessId = reader.GetInt32(5),
                                     };
@@ -362,8 +373,8 @@ namespace ResiGrass_API.Logic
                 {
                     conn.Open();
                     string query = @"
-                INSERT INTO ""client"" (""nitCc"", ""nameClient"", ""dateCreationClient"", ""sign"", ""status"", ""typeBusinessId"")
-                VALUES (@nitCc, @nameClient, @dateCreationClient, @sign, @status, @typeBusinessId)
+                INSERT INTO ""client"" (""nitCc"", ""nameClient"", ""dateCreationClient"",""status"", ""typeBusinessId"")
+                VALUES (@nitCc, @nameClient, @dateCreationClient, @status, @typeBusinessId)
                 RETURNING *";
 
                     using (var cmd = new NpgsqlCommand(query, conn))
@@ -371,7 +382,6 @@ namespace ResiGrass_API.Logic
                         cmd.Parameters.AddWithValue("@nitCc", clientModel.nitCc);
                         cmd.Parameters.AddWithValue("@nameClient", clientModel.nameClient);
                         cmd.Parameters.AddWithValue("@dateCreationClient", DateTime.Now);
-                        cmd.Parameters.AddWithValue("@sign", clientModel.sign);
                         cmd.Parameters.Add("@status", NpgsqlTypes.NpgsqlDbType.Bit).Value = clientModel.status ? "1" : "0";
                         //cmd.Parameters.AddWithValue("@status", clientModel.status ? "B'1'" : "B'0'");
                         cmd.Parameters.AddWithValue("@typeBusinessId", clientModel.typeBusinessId);
@@ -385,7 +395,6 @@ namespace ResiGrass_API.Logic
                                     nitCc = reader.GetString(1),
                                     nameClient = reader.GetString(2),
                                     dateCreationClient = reader.GetDateTime(3),
-                                    sign = reader.GetString(4),
                                     status = reader.GetBoolean(5),
                                     typeBusinessId = reader.GetInt32(6),
 
@@ -466,17 +475,17 @@ namespace ResiGrass_API.Logic
                 {
                     conn.Open();
                     string query = @"
-            UPDATE ""client"" 
-            SET 
-                ""nitCc"" = @nitCc,
-                ""nameClient"" = @nameClient, 
-                ""dateCreationClient"" = @dateCreationClient, 
-                ""signature_image"" = @signature_image, 
-                ""status"" = @status, 
-                ""typeBusinessId"" = @typeBusinessId
-            WHERE 
-                 ""id"" = @id
-            RETURNING *";
+                    UPDATE ""client"" 
+                    SET 
+                        ""nitCc"" = @nitCc,
+                        ""nameClient"" = @nameClient, 
+                        ""dateCreationClient"" = @dateCreationClient, 
+                        ""signature_image"" = @signature_image, 
+                        ""status"" = @status, 
+                        ""typeBusinessId"" = @typeBusinessId
+                    WHERE 
+                         ""id"" = @id
+                    RETURNING *";
 
                     using (var cmd = new NpgsqlCommand(query, conn))
                     {
@@ -485,15 +494,15 @@ namespace ResiGrass_API.Logic
                         cmd.Parameters.AddWithValue("@nitCc", clientModel.nitCc);
                         cmd.Parameters.AddWithValue("@nameClient", clientModel.nameClient);
                         cmd.Parameters.AddWithValue("@dateCreationClient", DateTime.Now);
-                        if (string.IsNullOrEmpty(clientModel.sign))
-                        {
-                            cmd.Parameters.AddWithValue("@signature_image", DBNull.Value);
-                        }
-                        else
-                        {
-                            byte[] signBytes = Convert.FromBase64String(clientModel.sign);
-                            cmd.Parameters.AddWithValue("@signature_image", NpgsqlTypes.NpgsqlDbType.Bytea, signBytes);
-                        }
+                        //if (string.IsNullOrEmpty(clientModel.sign))
+                        //{
+                        //    cmd.Parameters.AddWithValue("@signature_image", DBNull.Value);
+                        //}
+                        //else
+                        //{
+                        //    byte[] signBytes = Convert.FromBase64String(clientModel.sign);
+                        //    cmd.Parameters.AddWithValue("@signature_image", NpgsqlTypes.NpgsqlDbType.Bytea, signBytes);
+                        //}
                         cmd.Parameters.Add("@status", NpgsqlTypes.NpgsqlDbType.Bit).Value = clientModel.status ? "1" : "0";
                         cmd.Parameters.AddWithValue("@typeBusinessId", clientModel.typeBusinessId);
 
@@ -508,8 +517,8 @@ namespace ResiGrass_API.Logic
                                     nameClient = reader.GetString(2),
                                     dateCreationClient = reader.GetDateTime(3),
                                     status = reader.GetBoolean(4), 
-                                    typeBusinessId = reader.GetInt32(5),
-                                    sign = reader.IsDBNull(6) ? null : Convert.ToBase64String(reader.GetFieldValue<byte[]>(6))
+                                    typeBusinessId = reader.GetInt32(5)
+                                  //  sign = reader.IsDBNull(6) ? null : Convert.ToBase64String(reader.GetFieldValue<byte[]>(6))
                                 };
                                 clients.Add(client);
                             }
@@ -544,11 +553,11 @@ namespace ResiGrass_API.Logic
 
                     if (clientId == 0 || idLocality == 0)
                     {
-                        query = "SELECT h.id, h.\"nameHeadquarter\", h.\"numberPhone\", h.\"address\", \r\n       h.\"localityId\", h.\"clientId\", l.\"nameLocality\", h.\"status\"\r\nFROM \"headquarter\" h\r\nINNER JOIN \"client\" c ON h.\"clientId\" = c.id\r\nINNER JOIN \"locality\" l ON h.\"localityId\" = l.id;\r\n";
+                        query = "SELECT h.id, h.\"nameHeadquarter\", h.\"numberPhone\", h.\"address\", \r\n       h.\"localityId\", h.\"clientId\", l.\"nameLocality\", h.\"status\" , h.\"email\" \r\nFROM \"headquarter\" h\r\nINNER JOIN \"client\" c ON h.\"clientId\" = c.id\r\nINNER JOIN \"locality\" l ON h.\"localityId\" = l.id;\r\n";
                     }
                     else
                     {
-                        query = "SELECT h.id, h.\"nameHeadquarter\", h.\"numberPhone\", h.\"address\", \r\n       h.\"localityId\", h.\"clientId\", l.\"nameLocality\", h.\"status\"\r\nFROM \"headquarter\" h\r\nINNER JOIN \"client\" c ON h.\"clientId\" = c.id\r\nINNER JOIN \"locality\" l ON h.\"localityId\" = l.id;\r\n WHERE \"clientId\" = @clientId AND \"localityId\" = @localityId";
+                        query = "SELECT h.id, h.\"nameHeadquarter\", h.\"numberPhone\", h.\"address\", \r\n       h.\"localityId\", h.\"clientId\", l.\"nameLocality\", h.\"status\" , h.\"email\" \r\nFROM \"headquarter\" h\r\nINNER JOIN \"client\" c ON h.\"clientId\" = c.id\r\nINNER JOIN \"locality\" l ON h.\"localityId\" = l.id;\r\n WHERE \"clientId\" = @clientId AND \"localityId\" = @localityId";
                     }
 
                     using (var cmd = new NpgsqlCommand(query, conn))
@@ -578,6 +587,7 @@ namespace ResiGrass_API.Logic
                                             nameLocality = reader.GetString(6),
                                         }, 
                                         status = reader.GetFieldValue<bool>(7),
+                                        email = reader.GetString(8)
                                     };
 
                                     Headquarter.Add(headquarter);
@@ -631,7 +641,7 @@ namespace ResiGrass_API.Logic
                                         dateCreationHeadquarter = reader.GetDateTime(4),
                                         status = reader.GetBoolean(5),
                                         clientId = reader.GetInt32(6),
-                                        localityId = reader.GetInt32(7),
+                                        localityId = reader.GetInt32(7)
                                     };
 
                                     Headquarter.Add(headquarter);
@@ -1062,6 +1072,57 @@ namespace ResiGrass_API.Logic
         }
         #endregion
 
+        #region CollectorUpdate
+        public bool UpdateCollector(int collectorId, CollectorModelUpdate collectorModel, byte[] imageData)
+        {
+            try
+            {
+                using (var conn = new NpgsqlConnection(_connectionString))
+                {
+                    conn.Open();
+
+                    // Query para actualizar el recolector
+                    string queryUpdate = @"
+            UPDATE resigrass.collector
+            SET 
+                ""nameCollector"" = @nameCollector,
+                ""numberPhoneCollector"" = @numberPhoneCollector,
+                ""status"" = @status,
+                ""typeCollectorId"" = @typeCollectorId,
+                ""profile_image"" = @profileImage
+            WHERE 
+                ""id"" = @collectorId";
+
+                    using (var cmdUpdate = new NpgsqlCommand(queryUpdate, conn))
+                    {
+                        
+                        cmdUpdate.Parameters.AddWithValue("@collectorId", collectorId);
+                        cmdUpdate.Parameters.AddWithValue("@nameCollector", collectorModel.nameCollector);
+                        cmdUpdate.Parameters.AddWithValue("@numberPhoneCollector", collectorModel.numberPhoneCollector);
+
+                       
+                        var statusBit = collectorModel.status ? new BitArray(new[] { true }) : new BitArray(new[] { false });
+                        cmdUpdate.Parameters.AddWithValue("@status", statusBit);
+
+                        cmdUpdate.Parameters.AddWithValue("@typeCollectorId", collectorModel.typeCollectorId);
+
+                
+                        cmdUpdate.Parameters.AddWithValue("@profileImage", imageData ?? (object)DBNull.Value);
+
+                   
+                        int rowsAffected = cmdUpdate.ExecuteNonQuery();
+                        return rowsAffected > 0; 
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al actualizar el recolector: {ex.Message}");
+                return false; // Retorna false si ocurrió un error
+            }
+        }
+        #endregion
+
         #region HashPassword
         private string HashPassword(string password)
         {
@@ -1449,18 +1510,26 @@ namespace ResiGrass_API.Logic
                 {
                     conn.Open();
 
-                    using (var cmd = new NpgsqlCommand("SELECT * FROM collection WHERE id = 1", conn))
+                    using (var transaction = conn.BeginTransaction())
                     {
-                        using (var reader = cmd.ExecuteReader())
+                        string query = @"
+                SELECT c.""id"", c.""receivedDate"", c.""endDate"", c.""fullPayment"", c.""priceUnit"", c.""netWeight"", 
+                       c.""observations"", c.""receivedFull"", c.""bowlEmpty"", c.""collectorId"", 
+                       c.""headquarterId"", c.""measureId"", c.""methodPaymentId"", c.""productId"", 
+                       h.email
+                FROM collection c
+                INNER JOIN headquarter h ON c.""headquarterId"" = h.id
+                WHERE c.""endDate"" <= NOW() + INTERVAL '2 days' AND c.""is_sent"" = B'0';";
+
+                        using (var cmd = new NpgsqlCommand(query, conn, transaction))
                         {
-                            while (reader.Read())
+                            using (var reader = cmd.ExecuteReader())
                             {
-                                if (!reader.IsDBNull(0))
+                                while (reader.Read())
                                 {
                                     var record = new RecolectionModel
                                     {
-
-
+                                        id = reader.GetInt32(0),
                                         receivedDate = reader.GetDateTime(1),
                                         endDate = reader.GetDateTime(2),
                                         fullPayment = reader.GetFloat(3),
@@ -1474,10 +1543,80 @@ namespace ResiGrass_API.Logic
                                         measureId = reader.GetInt32(11),
                                         methodPaymentId = reader.GetInt32(12),
                                         productId = reader.GetInt32(13),
+                                        email = reader.IsDBNull(14) ? null : reader.GetString(14)
                                     };
 
                                     records.Add(record);
                                 }
+                            }
+                        }
+                        foreach (var record in records)
+                        {
+                            using (var updateCmd = new NpgsqlCommand("UPDATE collection SET is_sent = B'1' WHERE id = @id", conn, transaction))
+                            {
+                                updateCmd.Parameters.AddWithValue("@id", record.id);
+                                updateCmd.ExecuteNonQuery();
+                            }
+                        }
+
+                        transaction.Commit();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al obtener y actualizar los registros: {ex.Message}");
+                return new List<RecolectionModel>();
+            }
+
+            return records;
+        }
+        #endregion
+
+        #region GetRecolectionById
+        public RecolectionModel GetRecolectionById(int id)
+        {
+            try
+            {
+                using (var conn = new NpgsqlConnection(_connectionString))
+                {
+                    conn.Open();
+
+                    string query = @"
+                SELECT c.""id"", c.""receivedDate"", c.""endDate"", c.""fullPayment"", c.""priceUnit"", 
+                       c.""netWeight"", c.""observations"", c.""receivedFull"", c.""bowlEmpty"", 
+                       c.""collectorId"", c.""headquarterId"", c.""measureId"", c.""methodPaymentId"", 
+                       c.""productId"", h.email
+                FROM collection c
+                INNER JOIN headquarter h ON c.""headquarterId"" = h.id
+                WHERE c.""id"" = @id";
+
+                    using (var cmd = new NpgsqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@id", id);
+
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                return new RecolectionModel
+                                {
+                                    id = reader.GetInt32(0),
+                                    receivedDate = reader.GetDateTime(1),
+                                    endDate = reader.GetDateTime(2),
+                                    fullPayment = reader.GetFloat(3),
+                                    priceUnit = reader.GetFloat(4),
+                                    netWeight = reader.GetFloat(5),
+                                    observations = reader.GetString(6),
+                                    receivedFull = reader.GetInt32(7),
+                                    bowlEmpty = reader.GetInt32(8),
+                                    collectorId = reader.GetInt32(9),
+                                    headquarterId = reader.GetInt32(10),
+                                    measureId = reader.GetInt32(11),
+                                    methodPaymentId = reader.GetInt32(12),
+                                    productId = reader.GetInt32(13),
+                                    email = reader.IsDBNull(14) ? null : reader.GetString(14)
+                                };
                             }
                         }
                     }
@@ -1485,12 +1624,34 @@ namespace ResiGrass_API.Logic
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al obtener los registros: {ex.Message}");
-                return new List<RecolectionModel>();
+                Console.WriteLine($"Error al obtener la recolección: {ex.Message}");
             }
 
-            return records;
+            return null;
         }
+
+        public void MarkAsSent(int id)
+        {
+            try
+            {
+                using (var conn = new NpgsqlConnection(_connectionString))
+                {
+                    conn.Open();
+
+                    string updateQuery = "UPDATE collection SET is_sent = B'1' WHERE id = @id";
+
+                    using (var cmd = new NpgsqlCommand(updateQuery, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@id", id);
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al actualizar el estado de envío: {ex.Message}");
+            }
+        } 
         #endregion
 
         #region UserAdminCreation
