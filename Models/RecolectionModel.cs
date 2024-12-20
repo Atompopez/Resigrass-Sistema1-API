@@ -15,7 +15,7 @@ namespace ResiGrass_API.Models
         MeasuresModel? measuresModel { get; set; }
         MethodPaymentModel? methodPaymentModel { get; set; }
         CollectorsModel? collectorModel { get; set; }
-        public required int receivedFull {  get; set; }
+        public required float receivedFull {  get; set; }
         public required int bowlEmpty { get; set; }
         public required DateTime receivedDate { get; set; }
         public required DateTime endDate { get; set; }
@@ -42,7 +42,7 @@ namespace ResiGrass_API.Models
         MeasuresModel? measuresModel { get; set; }
         MethodPaymentModel? methodPaymentModel { get; set; }
         CollectorsModel? collectorModel { get; set; }
-        public  int receivedFull { get; set; }
+        public float receivedFull { get; set; }
         public  int bowlEmpty { get; set; }
         public  DateTime receivedDate { get; set; }
         public  DateTime endDate { get; set; }

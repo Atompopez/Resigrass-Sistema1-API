@@ -1081,37 +1081,48 @@ namespace ResiGrass_API.Logic
                 {
                     conn.Open();
 
-                    // Query para actualizar el recolector
-                    string queryUpdate = @"
-            UPDATE resigrass.collector
-            SET 
-                ""nameCollector"" = @nameCollector,
-                ""numberPhoneCollector"" = @numberPhoneCollector,
-                ""status"" = @status,
-                ""typeCollectorId"" = @typeCollectorId,
-                ""profile_image"" = @profileImage
-            WHERE 
-                ""id"" = @collectorId";
+                    // Construir la parte SET de la consulta dinámicamente
+                    var setClauses = new List<string>
+            {
+                "\"nameCollector\" = @nameCollector",
+                "\"numberPhoneCollector\" = @numberPhoneCollector",
+                "\"status\" = @status",
+                "\"profile_image\" = @profileImage"
+            };
+
+                    // Agregar "typeCollectorId" solo si no es 0
+                    if (collectorModel.typeCollectorId != 0)
+                    {
+                        setClauses.Add("\"typeCollectorId\" = @typeCollectorId");
+                    }
+
+                    // Combinar la consulta
+                            string queryUpdate = $@"
+                    UPDATE resigrass.collector
+                    SET {string.Join(", ", setClauses)}
+                    WHERE ""id"" = @collectorId";
 
                     using (var cmdUpdate = new NpgsqlCommand(queryUpdate, conn))
                     {
-                        
+                        // Parámetros obligatorios
                         cmdUpdate.Parameters.AddWithValue("@collectorId", collectorId);
                         cmdUpdate.Parameters.AddWithValue("@nameCollector", collectorModel.nameCollector);
                         cmdUpdate.Parameters.AddWithValue("@numberPhoneCollector", collectorModel.numberPhoneCollector);
 
-                       
                         var statusBit = collectorModel.status ? new BitArray(new[] { true }) : new BitArray(new[] { false });
                         cmdUpdate.Parameters.AddWithValue("@status", statusBit);
 
-                        cmdUpdate.Parameters.AddWithValue("@typeCollectorId", collectorModel.typeCollectorId);
-
-                
                         cmdUpdate.Parameters.AddWithValue("@profileImage", imageData ?? (object)DBNull.Value);
 
-                   
+                        // Parámetro opcional: typeCollectorId (solo si no es 0)
+                        if (collectorModel.typeCollectorId != 0)
+                        {
+                            cmdUpdate.Parameters.AddWithValue("@typeCollectorId", collectorModel.typeCollectorId);
+                        }
+
+                        // Ejecutar la consulta
                         int rowsAffected = cmdUpdate.ExecuteNonQuery();
-                        return rowsAffected > 0; 
+                        return rowsAffected > 0; // Retorna true si al menos una fila fue afectada
                     }
                 }
             }
@@ -1122,6 +1133,7 @@ namespace ResiGrass_API.Logic
             }
         }
         #endregion
+
 
         #region HashPassword
         private string HashPassword(string password)
