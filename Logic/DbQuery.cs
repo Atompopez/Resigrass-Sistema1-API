@@ -542,6 +542,10 @@ namespace ResiGrass_API.Logic
         #region Headquarters
         public List<HeadQuartersModelGet> GetHeadquarters(int clientId, int idLocality)
         {
+            if (clientId == -1 && idLocality == -1)
+            {
+                return new List<HeadQuartersModelGet>();
+            }
             var Headquarter = new List<HeadQuartersModelGet>();
 
             try
@@ -549,15 +553,28 @@ namespace ResiGrass_API.Logic
                 using (var conn = new NpgsqlConnection(_connectionString))
                 {
                     conn.Open();
-                    string query; 
+                    string query;
 
                     if (clientId == 0 || idLocality == 0)
                     {
-                        query = "SELECT h.id, h.\"nameHeadquarter\", h.\"numberPhone\", h.\"address\", \r\n       h.\"localityId\", h.\"clientId\", l.\"nameLocality\", h.\"status\" , h.\"email\" \r\nFROM \"headquarter\" h\r\nINNER JOIN \"client\" c ON h.\"clientId\" = c.id\r\nINNER JOIN \"locality\" l ON h.\"localityId\" = l.id;\r\n";
+                        query = @"
+                SELECT h.id, h.""nameHeadquarter"", h.""numberPhone"", h.""address"", 
+                       h.""localityId"", h.""clientId"", l.""nameLocality"", h.""status"", 
+                       h.""email"", h.""signature_image"" 
+                FROM ""headquarter"" h
+                INNER JOIN ""client"" c ON h.""clientId"" = c.id
+                INNER JOIN ""locality"" l ON h.""localityId"" = l.id;";
                     }
                     else
                     {
-                        query = "SELECT h.id, h.\"nameHeadquarter\", h.\"numberPhone\", h.\"address\", \r\n       h.\"localityId\", h.\"clientId\", l.\"nameLocality\", h.\"status\" , h.\"email\" \r\nFROM \"headquarter\" h\r\nINNER JOIN \"client\" c ON h.\"clientId\" = c.id\r\nINNER JOIN \"locality\" l ON h.\"localityId\" = l.id;\r\n WHERE \"clientId\" = @clientId AND \"localityId\" = @localityId";
+                        query = @"
+                SELECT h.id, h.""nameHeadquarter"", h.""numberPhone"", h.""address"", 
+                       h.""localityId"", h.""clientId"", l.""nameLocality"", h.""status"", 
+                       h.""email"", h.""signature_image"" 
+                FROM ""headquarter"" h
+                INNER JOIN ""client"" c ON h.""clientId"" = c.id
+                INNER JOIN ""locality"" l ON h.""localityId"" = l.id
+                WHERE h.""clientId"" = @clientId AND h.""localityId"" = @localityId;";
                     }
 
                     using (var cmd = new NpgsqlCommand(query, conn))
@@ -572,7 +589,9 @@ namespace ResiGrass_API.Logic
                         {
                             while (reader.Read())
                             {
-                                if (!reader.IsDBNull(0) && !reader.IsDBNull(1) && !reader.IsDBNull(2) && !reader.IsDBNull(3) && !reader.IsDBNull(4) && !reader.IsDBNull(5) && !reader.IsDBNull(6) && !reader.IsDBNull(7) )
+                                if (!reader.IsDBNull(0) && !reader.IsDBNull(1) && !reader.IsDBNull(2) &&
+                                    !reader.IsDBNull(3) && !reader.IsDBNull(4) && !reader.IsDBNull(5) &&
+                                    !reader.IsDBNull(6) && !reader.IsDBNull(7))
                                 {
                                     var headquarter = new HeadQuartersModelGet
                                     {
@@ -585,9 +604,12 @@ namespace ResiGrass_API.Logic
                                         localitiesData = new LocalitiesModelGet
                                         {
                                             nameLocality = reader.GetString(6),
-                                        }, 
+                                        },
                                         status = reader.GetFieldValue<bool>(7),
-                                        email = reader.GetString(8)
+                                        email = reader.GetString(8),
+                                        signatureImage = reader.IsDBNull(9)
+                                            ? null
+                                            : Convert.ToBase64String((byte[])reader["signature_image"])
                                     };
 
                                     Headquarter.Add(headquarter);
@@ -605,7 +627,6 @@ namespace ResiGrass_API.Logic
 
             return Headquarter;
         }
-
         #endregion
 
         #region HeadquarterGet
@@ -620,9 +641,21 @@ namespace ResiGrass_API.Logic
                     conn.Open();
                     string query;
 
-
-                    query = "SELECT * FROM \"headquarter\" WHERE id = @id";
-
+                    
+                    query = @"
+                SELECT 
+                    id, 
+                    ""nameHeadquarter"", 
+                    ""numberPhone"", 
+                    ""address"", 
+                    ""dateCreationHeadquarter"", 
+                    ""status"", 
+                    ""clientId"", 
+                    ""localityId"",
+                    ""signature_image""
+                FROM ""headquarter""
+                WHERE id = @id;
+            ";
 
                     using (var cmd = new NpgsqlCommand(query, conn))
                     {
@@ -631,17 +664,28 @@ namespace ResiGrass_API.Logic
                         {
                             while (reader.Read())
                             {
-                                if (!reader.IsDBNull(0) && !reader.IsDBNull(1) && !reader.IsDBNull(2) && !reader.IsDBNull(3) && !reader.IsDBNull(4) && !reader.IsDBNull(5) && !reader.IsDBNull(6))
+                                // Asegurarse de que todos los campos no son nulos
+                                if (!reader.IsDBNull(reader.GetOrdinal("id")) &&
+                                    !reader.IsDBNull(reader.GetOrdinal("nameHeadquarter")) &&
+                                    !reader.IsDBNull(reader.GetOrdinal("numberPhone")) &&
+                                    !reader.IsDBNull(reader.GetOrdinal("address")) &&
+                                    !reader.IsDBNull(reader.GetOrdinal("dateCreationHeadquarter")) &&
+                                    !reader.IsDBNull(reader.GetOrdinal("status")) &&
+                                    !reader.IsDBNull(reader.GetOrdinal("clientId")) &&
+                                    !reader.IsDBNull(reader.GetOrdinal("localityId")))
                                 {
                                     var headquarter = new HeadQuartersModelCreation
                                     {
-                                        nameHeadquarter = reader.GetString(1),
-                                        numberPhone = reader.GetString(2),
-                                        address = reader.GetString(3),
-                                        dateCreationHeadquarter = reader.GetDateTime(4),
-                                        status = reader.GetBoolean(5),
-                                        clientId = reader.GetInt32(6),
-                                        localityId = reader.GetInt32(7)
+                                        nameHeadquarter = reader.GetString(reader.GetOrdinal("nameHeadquarter")),
+                                        numberPhone = reader.GetString(reader.GetOrdinal("numberPhone")),
+                                        address = reader.GetString(reader.GetOrdinal("address")),
+                                        dateCreationHeadquarter = reader.GetDateTime(reader.GetOrdinal("dateCreationHeadquarter")),
+                                        status = reader.GetBoolean(reader.GetOrdinal("status")),
+                                        clientId = reader.GetInt32(reader.GetOrdinal("clientId")),
+                                        localityId = reader.GetInt32(reader.GetOrdinal("localityId")),
+                                        SignatureImage = reader.IsDBNull(reader.GetOrdinal("signature_image"))
+                                            ? null
+                                            : Convert.ToBase64String((byte[])reader["signature_image"]) 
                                     };
 
                                     Headquarter.Add(headquarter);
@@ -659,7 +703,6 @@ namespace ResiGrass_API.Logic
 
             return Headquarter;
         }
-
         #endregion
 
         #region HeadQuarterCreation
@@ -673,9 +716,11 @@ namespace ResiGrass_API.Logic
                 {
                     conn.Open();
                     string query = @"
-                INSERT INTO ""headquarter"" (""nameHeadquarter"", ""numberPhone"", ""address"", ""dateCreationHeadquarter"", ""status"", ""clientId"", ""localityId"")
-                VALUES (@nameHeadquarter, @numberPhone, @address, @dateCreationHeadquarter, @status, @clientId, @localityId)
-                RETURNING *";
+                INSERT INTO ""headquarter"" 
+                (""nameHeadquarter"", ""numberPhone"", ""address"", ""dateCreationHeadquarter"", ""status"", ""clientId"", ""localityId"", ""signature_image"")
+                VALUES (@nameHeadquarter, @numberPhone, @address, @dateCreationHeadquarter, @status, @clientId, @localityId, @signatureImage)
+                RETURNING id, ""nameHeadquarter"", ""numberPhone"", ""address"", 
+                          ""dateCreationHeadquarter"", ""status"", ""clientId"", ""localityId"", ""signature_image"";";
 
                     using (var cmd = new NpgsqlCommand(query, conn))
                     {
@@ -687,20 +732,29 @@ namespace ResiGrass_API.Logic
                         cmd.Parameters.AddWithValue("@clientId", HeadQuartersModel.clientId);
                         cmd.Parameters.AddWithValue("@localityId", HeadQuartersModel.localityId);
 
+                        
+                        byte[] signatureImageBytes = string.IsNullOrEmpty(HeadQuartersModel.SignatureImage)
+                            ? null
+                            : Convert.FromBase64String(HeadQuartersModel.SignatureImage);
+
+                        cmd.Parameters.AddWithValue("@signatureImage", (object)signatureImageBytes ?? DBNull.Value);
+
                         using (var reader = cmd.ExecuteReader())
                         {
                             while (reader.Read())
                             {
                                 var headquarter = new HeadQuartersModelCreation
                                 {
-                                    nameHeadquarter = reader.GetString(1),
-                                    numberPhone = reader.GetString(2),
-                                    address = reader.GetString(3),
-                                    dateCreationHeadquarter = reader.GetDateTime(4),
-                                    status = reader.GetBoolean(5),
-                                    clientId = reader.GetInt32(6),
-                                    localityId = reader.GetInt32(7),
-
+                                    nameHeadquarter = reader.GetString(reader.GetOrdinal("nameHeadquarter")),
+                                    numberPhone = reader.GetString(reader.GetOrdinal("numberPhone")),
+                                    address = reader.GetString(reader.GetOrdinal("address")),
+                                    dateCreationHeadquarter = reader.GetDateTime(reader.GetOrdinal("dateCreationHeadquarter")),
+                                    status = reader.GetBoolean(reader.GetOrdinal("status")),
+                                    clientId = reader.GetInt32(reader.GetOrdinal("clientId")),
+                                    localityId = reader.GetInt32(reader.GetOrdinal("localityId")),
+                                    SignatureImage = reader.IsDBNull(reader.GetOrdinal("signature_image"))
+                                        ? null
+                                        : Convert.ToBase64String((byte[])reader["signature_image"]) 
                                 };
                                 headquartersmodel.Add(headquarter);
                             }
@@ -712,13 +766,10 @@ namespace ResiGrass_API.Logic
             {
                 Console.WriteLine($"Error al insertar la sede: {ex.Message}");
                 return new List<HeadQuartersModelCreation>();
-
-
             }
+
             return headquartersmodel;
         }
-
-
         #endregion
 
         #region HeadQuarterUpdate
@@ -741,10 +792,15 @@ namespace ResiGrass_API.Logic
                     ""dateCreationHeadquarter"" = @dateCreationHeadquarter, 
                     ""status"" = @status, 
                     ""clientId"" = @clientId, 
-                    ""localityId"" = @localityId
+                    ""localityId"" = @localityId,
+                    ""signature_image"" = @signatureImage
                 WHERE 
                     ""id"" = @id
-                RETURNING *";
+                RETURNING 
+                    id, ""nameHeadquarter"", ""numberPhone"", ""address"", 
+                    ""dateCreationHeadquarter"", ""status"", ""clientId"", 
+                    ""localityId"", ""signature_image"";
+            ";
 
                     using (var cmd = new NpgsqlCommand(query, conn))
                     {
@@ -756,6 +812,12 @@ namespace ResiGrass_API.Logic
                         cmd.Parameters.Add("@status", NpgsqlTypes.NpgsqlDbType.Bit).Value = headQuarterModel.status ? (object)true : (object)false;
                         cmd.Parameters.AddWithValue("@clientId", headQuarterModel.clientId);
                         cmd.Parameters.AddWithValue("@localityId", headQuarterModel.localityId);
+                      
+                        byte[] signatureImageBytes = string.IsNullOrEmpty(headQuarterModel.SignatureImage)
+                            ? null
+                            : Convert.FromBase64String(headQuarterModel.SignatureImage);
+
+                        cmd.Parameters.AddWithValue("@signatureImage", (object)signatureImageBytes ?? DBNull.Value);
 
                         using (var reader = cmd.ExecuteReader())
                         {
@@ -763,13 +825,16 @@ namespace ResiGrass_API.Logic
                             {
                                 var headQuarter = new HeadQuartersModelCreation
                                 {
-                                    nameHeadquarter = reader.GetString(1),
-                                    numberPhone = reader.GetString(2),
-                                    address = reader.GetString(3),
-                                    dateCreationHeadquarter = reader.GetDateTime(4),
-                                    status = reader.GetBoolean(5),
-                                    clientId = reader.GetInt32(6),
-                                    localityId = reader.GetInt32(7),
+                                    nameHeadquarter = reader.GetString(reader.GetOrdinal("nameHeadquarter")),
+                                    numberPhone = reader.GetString(reader.GetOrdinal("numberPhone")),
+                                    address = reader.GetString(reader.GetOrdinal("address")),
+                                    dateCreationHeadquarter = reader.GetDateTime(reader.GetOrdinal("dateCreationHeadquarter")),
+                                    status = reader.GetBoolean(reader.GetOrdinal("status")),
+                                    clientId = reader.GetInt32(reader.GetOrdinal("clientId")),
+                                    localityId = reader.GetInt32(reader.GetOrdinal("localityId")),
+                                    SignatureImage = reader.IsDBNull(reader.GetOrdinal("signature_image"))
+                                        ? null
+                                        : Convert.ToBase64String((byte[])reader["signature_image"])
                                 };
                                 headQuarters.Add(headQuarter);
                             }
@@ -782,9 +847,47 @@ namespace ResiGrass_API.Logic
                 Console.WriteLine($"Error al actualizar la sede: {ex.Message}");
                 return new List<HeadQuartersModelCreation>();
             }
+
             return headQuarters;
         }
+        #endregion
 
+        #region UpdateSignature
+        public bool UpdateSignature(int idHeadQuarter, string signatureImageBase64)
+        {
+            try
+            {
+                using (var conn = new NpgsqlConnection(_connectionString))
+                {
+                    conn.Open();
+
+                    string query = @"
+                UPDATE ""headquarter"" 
+                SET ""signature_image"" = @signatureImage
+                WHERE ""id"" = @idHeadQuarter";
+
+                    using (var cmd = new NpgsqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@idHeadQuarter", idHeadQuarter);
+
+                        // Convertir la imagen en Base64 a un arreglo de bytes
+                        byte[] signatureImageBytes = string.IsNullOrEmpty(signatureImageBase64)
+                            ? null
+                            : Convert.FromBase64String(signatureImageBase64);
+
+                        cmd.Parameters.AddWithValue("@signatureImage", (object)signatureImageBytes ?? DBNull.Value);
+
+                        int rowsAffected = cmd.ExecuteNonQuery();
+                        return rowsAffected > 0; // Devuelve true si se actualizó al menos un registro
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al actualizar la firma: {ex.Message}");
+                return false; // Indica que la actualización falló
+            }
+        }
         #endregion
 
         #region Measures
@@ -1134,7 +1237,6 @@ namespace ResiGrass_API.Logic
         }
         #endregion
 
-
         #region HashPassword
         private string HashPassword(string password)
         {
@@ -1365,7 +1467,7 @@ namespace ResiGrass_API.Logic
                 {
                     conn.Open();
 
-                    // Modificación: Añadimos el campo serial_number en la consulta
+             
                     string query = @"
             SELECT 
                 c.""id"" AS Id,
@@ -1377,12 +1479,14 @@ namespace ResiGrass_API.Logic
                 col.""id"" AS RecolectorId, col.""nameCollector"" AS RecolectorNombre,
                 c.""fullPayment"" AS Pago,
                 c.""observations"" AS Observaciones,
-                c.""serial_number"" AS Serial  
+                c.""serial_number"" AS Serial,
+                c.""is_sent"" AS IsSent
             FROM collection c
             INNER JOIN headquarter h ON c.""headquarterId"" = h.""id""
             INNER JOIN client cl ON h.""clientId"" = cl.""id""
             INNER JOIN measure m ON c.""measureId"" = m.""id""
-            INNER JOIN collector col ON c.""collectorId"" = col.""id""";
+            INNER JOIN collector col ON c.""collectorId"" = col.""id""
+            ORDER BY c.""serial_number""";
 
                     using (var cmd = new NpgsqlCommand(query, conn))
                     {
@@ -1405,9 +1509,10 @@ namespace ResiGrass_API.Logic
                                     NameCollector = reader.GetString(reader.GetOrdinal("RecolectorNombre")),
                                     fullPayment = reader.GetFloat(reader.GetOrdinal("Pago")),
                                     Observations = reader.IsDBNull(reader.GetOrdinal("Observaciones"))
-                                                    ? null
-                                                    : reader.GetString(reader.GetOrdinal("Observaciones")),
-                                    Serial = reader.GetString(reader.GetOrdinal("Serial")) // Asignación del serial
+                                                   ? null
+                                                   : reader.GetString(reader.GetOrdinal("Observaciones")),
+                                    Serial = reader.GetString(reader.GetOrdinal("Serial")), 
+                                    IsSent = reader.GetBoolean(reader.GetOrdinal("IsSent")) 
                                 };
 
                                 collections.Add(collection);

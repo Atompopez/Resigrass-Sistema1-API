@@ -184,7 +184,7 @@ namespace ResiGrass_API.Controllers
 
         #region ColectionGet
         [HttpPost("ColectionGet")]
-          [Authorize(AuthenticationSchemes = "Bearer")]
+        [Authorize(AuthenticationSchemes = "Bearer")]
         public IActionResult ColectionGet()
         {
 
@@ -263,8 +263,6 @@ namespace ResiGrass_API.Controllers
         }
 
         #endregion
-
-  
 
 
     }

@@ -91,7 +91,7 @@ namespace ResiGrass_API.Controllers
 
         #region GetHeadquarters
         [HttpGet("{clientId}/{idLocality}/GetHeadquarters")]
-   //     [Authorize(AuthenticationSchemes = "Bearer")]
+        [Authorize(AuthenticationSchemes = "Bearer")]
         public IActionResult GetHeadquarters(int clientId, int idLocality)
         {
             var client = _dbQuery.GetHeadquarters(clientId, idLocality);
@@ -145,5 +145,36 @@ namespace ResiGrass_API.Controllers
             }
         }
         #endregion
+
+        #region UpdateHeadquarterSignature
+        [HttpPut("UpdateHeadquarterSignature/{idHeadQuarter}")]
+        [Authorize(AuthenticationSchemes = "Bearer")]
+        public IActionResult UpdateHeadquarterSignature(int idHeadQuarter, [FromBody] string signatureImageBase64)
+        {
+            var existingHeadquarter = _dbQuery.HeadquarterGet(idHeadQuarter);
+
+            if (existingHeadquarter.Count == 0)
+            {
+                return NotFound($"Sede con ID {idHeadQuarter} no encontrada.");
+            }
+
+            try
+            {
+                bool isUpdated = _dbQuery.UpdateSignature(idHeadQuarter, signatureImageBase64);
+
+                if (!isUpdated)
+                {
+                    return BadRequest("Error al actualizar la firma de la sede.");
+                }
+
+                return Ok("Firma de la sede actualizada exitosamente.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error al actualizar la firma de la sede: {ex.Message}");
+            }
+        }
+        #endregion
+
     }
 }
