@@ -59,7 +59,7 @@ namespace ResiGrass_API.Logic
                 var smtpClient = new SmtpClient("smtp.gmail.com")
                 {
                     Port = 587,
-                    Credentials = new NetworkCredential("nuntius.diecinueve@fiscalia.gov.co", "Fiscalia@202**"),
+                    Credentials = new NetworkCredential("resigrass0@gmail.com", "xnzs bpwv mlhk fmxi\r\n"),
                     EnableSsl = true,
                 };
 
@@ -69,7 +69,7 @@ namespace ResiGrass_API.Logic
 
                     var mailMessage = new MailMessage
                     {
-                        From = new MailAddress("davidsant2188@gmail.com"),
+                        From = new MailAddress("resigrass0@gmail.com"),
                         Subject = "Notificación de registros a dos días",
                         Body = emailBody,
                         IsBodyHtml = true,

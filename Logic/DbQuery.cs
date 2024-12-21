@@ -480,7 +480,6 @@ namespace ResiGrass_API.Logic
                         ""nitCc"" = @nitCc,
                         ""nameClient"" = @nameClient, 
                         ""dateCreationClient"" = @dateCreationClient, 
-                        ""signature_image"" = @signature_image, 
                         ""status"" = @status, 
                         ""typeBusinessId"" = @typeBusinessId
                     WHERE 

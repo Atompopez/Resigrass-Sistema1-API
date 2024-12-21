@@ -245,7 +245,7 @@ namespace ResiGrass_API.Controllers
                 }
 
                 return Ok("Recolección recibida y notificaciones enviadas.");
-            }
+            }                                           
             catch (Exception ex)
             {
                 return StatusCode(500, $"Error al recibir la recolección: {ex.Message}");
