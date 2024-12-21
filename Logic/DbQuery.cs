@@ -240,32 +240,29 @@ namespace ResiGrass_API.Logic
                 {
                     conn.Open();
 
-                   
                     string query = @"
-                SELECT c.""id"", c.""nitCc"", c.""nameClient"", c.""dateCreationClient"", 
-                       c.""status"", c.""typeBusinessId"",
-                       t.""id"", t.""businessDescription"", t.""status""
-                FROM ""client"" c
-                INNER JOIN ""typeBusiness"" t ON c.""typeBusinessId"" = t.""id""
-            ";
+            SELECT c.""id"", c.""nitCc"", c.""nameClient"", c.""corporate_name"", c.""dateCreationClient"", 
+                   c.""status"", c.""typeBusinessId"",
+                   t.""id"", t.""businessDescription"", t.""status""
+            FROM ""client"" c
+            INNER JOIN ""typeBusiness"" t ON c.""typeBusinessId"" = t.""id""
+        ";
 
-                    
                     if (idTypeBusiness == 0)
-                    {                    
+                    {
                         query += @" WHERE c.""status"" = '1'";
                     }
                     else if (idTypeBusiness == -1)
                     {
-  
+                        // No se filtra por ningún criterio adicional.
                     }
                     else
-                    {              
+                    {
                         query += @" WHERE c.""typeBusinessId"" = @idTypeBusiness AND c.""status"" = '1'";
                     }
 
                     using (var cmd = new NpgsqlCommand(query, conn))
                     {
-                      
                         if (idTypeBusiness > 0)
                         {
                             cmd.Parameters.AddWithValue("idTypeBusiness", idTypeBusiness);
@@ -280,14 +277,15 @@ namespace ResiGrass_API.Logic
                                     id = reader.GetInt32(0),
                                     nitCc = reader.GetString(1),
                                     nameClient = reader.GetString(2),
-                                    dateCreationClient = reader.GetDateTime(3),
-                                    status = reader.GetBoolean(4),
-                                    typeBusinessId = reader.GetInt32(5),
+                                    corporateName = reader.IsDBNull(3) ? null : reader.GetString(3), // Manejo de valores nulos
+                                    dateCreationClient = reader.GetDateTime(4),
+                                    status = reader.GetBoolean(5),
+                                    typeBusinessId = reader.GetInt32(6),
                                     businessModelData = new TypeBusinessModel
                                     {
-                                        id = reader.GetInt32(6),
-                                        businessDescription = reader.GetString(7),
-                                        status = reader.GetBoolean(8)
+                                        id = reader.GetInt32(7),
+                                        businessDescription = reader.GetString(8),
+                                        status = reader.GetBoolean(9)
                                     }
                                 };
 
@@ -318,31 +316,38 @@ namespace ResiGrass_API.Logic
                 {
                     conn.Open();
                     string query;
+
                     if (IdClient == 0)
-                    { query = "SELECT * FROM \"client\" ";
+                    {
+                        query = "SELECT * FROM \"client\"";
                     }
                     else
                     {
-                    query = "SELECT * FROM \"client\" WHERE id = @id";
+                        query = "SELECT * FROM \"client\" WHERE id = @id";
                     }
-                    
+
                     using (var cmd = new NpgsqlCommand(query, conn))
                     {
-                        cmd.Parameters.AddWithValue("@id", IdClient);
+                        if (IdClient != 0)
+                        {
+                            cmd.Parameters.AddWithValue("@id", IdClient);
+                        }
+
                         using (var reader = cmd.ExecuteReader())
                         {
                             while (reader.Read())
                             {
-                                if (!reader.IsDBNull(0) )
+                                if (!reader.IsDBNull(0))
                                 {
                                     var client = new ClientModel
                                     {
                                         id = reader.GetInt32(0),
                                         nitCc = reader.GetString(1),
                                         nameClient = reader.GetString(2),
-                                        dateCreationClient = reader.GetDateTime(3),                                        
-                                        status = reader.GetBoolean(4),
-                                        typeBusinessId = reader.GetInt32(5),
+                                        corporateName = reader.IsDBNull(3) ? null : reader.GetString(3), // Manejo del campo corporate_name
+                                        dateCreationClient = reader.GetDateTime(4),
+                                        status = reader.GetBoolean(5),
+                                        typeBusinessId = reader.GetInt32(6),
                                     };
                                     Client.Add(client);
                                 }
@@ -359,7 +364,6 @@ namespace ResiGrass_API.Logic
 
             return Client;
         }
-
         #endregion
 
         #region ClientCreation
@@ -373,17 +377,17 @@ namespace ResiGrass_API.Logic
                 {
                     conn.Open();
                     string query = @"
-                INSERT INTO ""client"" (""nitCc"", ""nameClient"", ""dateCreationClient"",""status"", ""typeBusinessId"")
-                VALUES (@nitCc, @nameClient, @dateCreationClient, @status, @typeBusinessId)
-                RETURNING *";
+            INSERT INTO ""client"" (""nitCc"", ""nameClient"", ""corporate_name"", ""dateCreationClient"", ""status"", ""typeBusinessId"")
+            VALUES (@nitCc, @nameClient, @corporateName, @dateCreationClient, @status, @typeBusinessId)
+            RETURNING *";
 
                     using (var cmd = new NpgsqlCommand(query, conn))
                     {
                         cmd.Parameters.AddWithValue("@nitCc", clientModel.nitCc);
                         cmd.Parameters.AddWithValue("@nameClient", clientModel.nameClient);
+                        cmd.Parameters.AddWithValue("@corporateName", clientModel.corporateName ?? (object)DBNull.Value);
                         cmd.Parameters.AddWithValue("@dateCreationClient", DateTime.Now);
                         cmd.Parameters.Add("@status", NpgsqlTypes.NpgsqlDbType.Bit).Value = clientModel.status ? "1" : "0";
-                        //cmd.Parameters.AddWithValue("@status", clientModel.status ? "B'1'" : "B'0'");
                         cmd.Parameters.AddWithValue("@typeBusinessId", clientModel.typeBusinessId);
 
                         using (var reader = cmd.ExecuteReader())
@@ -394,10 +398,10 @@ namespace ResiGrass_API.Logic
                                 {
                                     nitCc = reader.GetString(1),
                                     nameClient = reader.GetString(2),
-                                    dateCreationClient = reader.GetDateTime(3),
+                                    corporateName = reader.IsDBNull(3) ? null : reader.GetString(3), // Manejo del campo corporate_name
+                                    dateCreationClient = reader.GetDateTime(4),
                                     status = reader.GetBoolean(5),
                                     typeBusinessId = reader.GetInt32(6),
-
                                 };
                                 clients.Add(client);
                             }
@@ -413,8 +417,6 @@ namespace ResiGrass_API.Logic
 
             return clients;
         }
-
-
         #endregion
 
         #region TypeBusinessCreation
@@ -475,36 +477,27 @@ namespace ResiGrass_API.Logic
                 {
                     conn.Open();
                     string query = @"
-                    UPDATE ""client"" 
-                    SET 
-                        ""nitCc"" = @nitCc,
-                        ""nameClient"" = @nameClient, 
-                        ""dateCreationClient"" = @dateCreationClient, 
-                        ""status"" = @status, 
-                        ""typeBusinessId"" = @typeBusinessId
-                    WHERE 
-                         ""id"" = @id
-                    RETURNING *";
+            UPDATE ""client"" 
+            SET 
+                ""nitCc"" = @nitCc,
+                ""nameClient"" = @nameClient, 
+                ""corporate_name"" = @corporateName,
+                ""dateCreationClient"" = @dateCreationClient, 
+                ""status"" = @status, 
+                ""typeBusinessId"" = @typeBusinessId
+            WHERE 
+                 ""id"" = @id
+            RETURNING *";
 
                     using (var cmd = new NpgsqlCommand(query, conn))
                     {
-
                         cmd.Parameters.AddWithValue("@id", IdClient);
                         cmd.Parameters.AddWithValue("@nitCc", clientModel.nitCc);
                         cmd.Parameters.AddWithValue("@nameClient", clientModel.nameClient);
+                        cmd.Parameters.AddWithValue("@corporateName", clientModel.corporateName ?? (object)DBNull.Value);
                         cmd.Parameters.AddWithValue("@dateCreationClient", DateTime.Now);
-                        //if (string.IsNullOrEmpty(clientModel.sign))
-                        //{
-                        //    cmd.Parameters.AddWithValue("@signature_image", DBNull.Value);
-                        //}
-                        //else
-                        //{
-                        //    byte[] signBytes = Convert.FromBase64String(clientModel.sign);
-                        //    cmd.Parameters.AddWithValue("@signature_image", NpgsqlTypes.NpgsqlDbType.Bytea, signBytes);
-                        //}
                         cmd.Parameters.Add("@status", NpgsqlTypes.NpgsqlDbType.Bit).Value = clientModel.status ? "1" : "0";
                         cmd.Parameters.AddWithValue("@typeBusinessId", clientModel.typeBusinessId);
-
 
                         using (var reader = cmd.ExecuteReader())
                         {
@@ -514,15 +507,14 @@ namespace ResiGrass_API.Logic
                                 {
                                     nitCc = reader.GetString(1),
                                     nameClient = reader.GetString(2),
-                                    dateCreationClient = reader.GetDateTime(3),
-                                    status = reader.GetBoolean(4), 
-                                    typeBusinessId = reader.GetInt32(5)
-                                  //  sign = reader.IsDBNull(6) ? null : Convert.ToBase64String(reader.GetFieldValue<byte[]>(6))
+                                    corporateName = reader.IsDBNull(3) ? null : reader.GetString(3), // Manejo del campo corporate_name
+                                    dateCreationClient = reader.GetDateTime(4),
+                                    status = reader.GetBoolean(5),
+                                    typeBusinessId = reader.GetInt32(6),
                                 };
                                 clients.Add(client);
                             }
                         }
-
                     }
                 }
             }
@@ -534,8 +526,6 @@ namespace ResiGrass_API.Logic
 
             return clients;
         }
-
-
         #endregion
 
         #region Headquarters
