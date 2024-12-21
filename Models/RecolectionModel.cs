@@ -65,6 +65,9 @@ namespace ResiGrass_API.Models
         public string NameHeadquarter { get; set; }
         public DateTime Date { get; set; }
         public float Amount { get; set; }
+
+        public bool IsSent { get; set; }
+
         public int MeasureId { get; set; }
         public string NameMeasure { get; set; }
         public int CollectorId { get; set; }
