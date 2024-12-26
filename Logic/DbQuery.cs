@@ -1983,14 +1983,14 @@ namespace ResiGrass_API.Logic
                             }
 
                             var storedPassword = reader.GetString(reader.GetOrdinal("password"));
-                            var storedStatus = reader.GetBoolean(reader.GetOrdinal("status")); 
+                            //var storedStatus = reader.GetBoolean(reader.GetOrdinal("status")); 
 
-                            if (!storedStatus)
-                            {
-                                response.Success = false;
-                                response.Message = "El usuario no está habilitado.";
-                                return response;
-                            }
+                            //if (!storedStatus)
+                            //{
+                            //    response.Success = false;
+                            //    response.Message = "El usuario no está habilitado.";
+                            //    return response;
+                            //}
 
                             reader.Close();
 
