@@ -344,10 +344,10 @@ namespace ResiGrass_API.Logic
                                         id = reader.GetInt32(0),
                                         nitCc = reader.GetString(1),
                                         nameClient = reader.GetString(2),
-                                        corporateName = reader.IsDBNull(3) ? null : reader.GetString(3), // Manejo del campo corporate_name
-                                        dateCreationClient = reader.GetDateTime(4),
-                                        status = reader.GetBoolean(5),
-                                        typeBusinessId = reader.GetInt32(6),
+                                        dateCreationClient = reader.GetDateTime(3),
+                                        status = reader.GetBoolean(4),
+                                        typeBusinessId = reader.GetInt32(5),
+                                        corporateName = reader.IsDBNull(6) ? null : reader.GetString(6)                                    
                                     };
                                     Client.Add(client);
                                 }
@@ -1456,26 +1456,31 @@ namespace ResiGrass_API.Logic
                 {
                     conn.Open();
 
-             
                     string query = @"
-            SELECT 
-                c.""id"" AS Id,
-                cl.""id"" AS ClienteId, cl.""nameClient"" AS nameClient,
-                h.""id"" AS HeadquarterId, h.""nameHeadquarter"" AS NameHeadquarter,
-                c.""receivedDate"" AS Date,
-                c.""netWeight"" AS Cantidad,
-                m.""id"" AS MedidaId, m.""abbreviation"" AS MedidaNombre,
-                col.""id"" AS RecolectorId, col.""nameCollector"" AS RecolectorNombre,
-                c.""fullPayment"" AS Pago,
-                c.""observations"" AS Observaciones,
-                c.""serial_number"" AS Serial,
-                c.""is_sent"" AS IsSent
-            FROM collection c
-            INNER JOIN headquarter h ON c.""headquarterId"" = h.""id""
-            INNER JOIN client cl ON h.""clientId"" = cl.""id""
-            INNER JOIN measure m ON c.""measureId"" = m.""id""
-            INNER JOIN collector col ON c.""collectorId"" = col.""id""
-            ORDER BY c.""serial_number""";
+                SELECT 
+                    c.""id"" AS Id,
+                    cl.""id"" AS ClienteId, cl.""nameClient"" AS nameClient,
+                    lo.""nameLocality"" AS City,
+                    cl.""nitCc"" AS Nit,
+                    h.""address"" AS Address,
+                    h.""numberPhone"" AS Phone,
+                    cl.""typeBusinessId"" AS BusinessType,
+                    h.""id"" AS HeadquarterId, h.""nameHeadquarter"" AS NameHeadquarter,
+                    c.""receivedDate"" AS Date,
+                    c.""netWeight"" AS Cantidad,
+                    m.""id"" AS MedidaId, m.""abbreviation"" AS MedidaNombre,
+                    col.""id"" AS RecolectorId, col.""nameCollector"" AS RecolectorNombre,
+                    c.""fullPayment"" AS Pago,
+                    c.""observations"" AS Observaciones,
+                    c.""serial_number"" AS Serial,
+                    c.""is_sent"" AS IsSent
+                FROM collection c
+                INNER JOIN headquarter h ON c.""headquarterId"" = h.""id""
+                INNER JOIN client cl ON h.""clientId"" = cl.""id""
+                INNER JOIN measure m ON c.""measureId"" = m.""id""
+                INNER JOIN collector col ON c.""collectorId"" = col.""id""
+                INNER JOIN locality lo ON h.""localityId"" = lo.""id""
+                ORDER BY c.""serial_number""";
 
                     using (var cmd = new NpgsqlCommand(query, conn))
                     {
@@ -1488,6 +1493,11 @@ namespace ResiGrass_API.Logic
                                     Id = reader.GetInt32(reader.GetOrdinal("Id")),
                                     ClienteId = reader.GetInt32(reader.GetOrdinal("ClienteId")),
                                     nameClient = reader.GetString(reader.GetOrdinal("nameClient")),
+                                    City = reader.GetString(reader.GetOrdinal("City")),
+                                    NIT = reader.GetString(reader.GetOrdinal("Nit")),
+                                    Address = reader.GetString(reader.GetOrdinal("Address")),
+                                    Phone = reader.GetString(reader.GetOrdinal("Phone")),
+                                    BusinessType = reader.GetInt32(reader.GetOrdinal("BusinessType")),
                                     HeadquarterId = reader.GetInt32(reader.GetOrdinal("HeadquarterId")),
                                     NameHeadquarter = reader.GetString(reader.GetOrdinal("NameHeadquarter")),
                                     Date = reader.GetDateTime(reader.GetOrdinal("Date")),
@@ -1500,8 +1510,8 @@ namespace ResiGrass_API.Logic
                                     Observations = reader.IsDBNull(reader.GetOrdinal("Observaciones"))
                                                    ? null
                                                    : reader.GetString(reader.GetOrdinal("Observaciones")),
-                                    Serial = reader.GetString(reader.GetOrdinal("Serial")), 
-                                    IsSent = reader.GetBoolean(reader.GetOrdinal("IsSent")) 
+                                    Serial = reader.GetString(reader.GetOrdinal("Serial")),
+                                    IsSent = reader.GetBoolean(reader.GetOrdinal("IsSent"))
                                 };
 
                                 collections.Add(collection);
@@ -1517,6 +1527,49 @@ namespace ResiGrass_API.Logic
 
             return collections;
         }
+        #endregion
+
+        #region GetTotalOilByDateRange
+        public float GetTotalOilByDateRange(DateTime startDate, DateTime endDate)
+        {
+            float totalOil = 0;
+
+            try
+            {
+                using (var conn = new NpgsqlConnection(_connectionString))
+                {
+                    conn.Open();
+
+                    string query = @"
+                SELECT 
+                    COALESCE(SUM(c.""netWeight""), 0) AS TotalOil
+                FROM collection c
+                WHERE c.""receivedDate"" BETWEEN @startDate AND @endDate";
+
+                    using (var cmd = new NpgsqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@startDate", startDate);
+                        cmd.Parameters.AddWithValue("@endDate", endDate);
+
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                totalOil = reader.GetFloat(reader.GetOrdinal("TotalOil"));
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al obtener el total de aceite: {ex.Message}");
+            }
+
+            return totalOil;
+        }
+
+
         #endregion
 
         #region UpdateCollection
@@ -1689,12 +1742,33 @@ namespace ResiGrass_API.Logic
                     conn.Open();
 
                     string query = @"
-                SELECT c.""id"", c.""receivedDate"", c.""endDate"", c.""fullPayment"", c.""priceUnit"", 
-                       c.""netWeight"", c.""observations"", c.""receivedFull"", c.""bowlEmpty"", 
-                       c.""collectorId"", c.""headquarterId"", c.""measureId"", c.""methodPaymentId"", 
-                       c.""productId"", h.email
+                SELECT 
+                    c.""id"", 
+                    c.""receivedDate"", 
+                    c.""endDate"", 
+                    c.""fullPayment"", 
+                    c.""priceUnit"", 
+                    c.""netWeight"", 
+                    c.""observations"", 
+                    c.""receivedFull"", 
+                    c.""bowlEmpty"", 
+                    c.""collectorId"", 
+                    col.""nameCollector"" AS CollectedName, 
+                    c.""headquarterId"", 
+                    h.""email"", 
+                    h.""address"", 
+                    h.""numberPhone"" AS HeadquarterPhone, 
+                    cl.""typeBusinessId"", 
+                    tb.""businessDescription"" AS BusinessType,
+                    h.""nameHeadquarter"", -- Nombre de la sede
+                    cl.""nitCc"",
+                    cl.""nameClient"",
+                    c.""serial_number""
                 FROM collection c
-                INNER JOIN headquarter h ON c.""headquarterId"" = h.id
+                INNER JOIN headquarter h ON c.""headquarterId"" = h.""id""
+                INNER JOIN client cl ON h.""clientId"" = cl.""id""
+                INNER JOIN ""typeBusiness"" tb ON cl.""typeBusinessId"" = tb.""id""
+                INNER JOIN collector col ON c.""collectorId"" = col.""id""
                 WHERE c.""id"" = @id";
 
                     using (var cmd = new NpgsqlCommand(query, conn))
@@ -1707,21 +1781,31 @@ namespace ResiGrass_API.Logic
                             {
                                 return new RecolectionModel
                                 {
-                                    id = reader.GetInt32(0),
-                                    receivedDate = reader.GetDateTime(1),
-                                    endDate = reader.GetDateTime(2),
-                                    fullPayment = reader.GetFloat(3),
-                                    priceUnit = reader.GetFloat(4),
-                                    netWeight = reader.GetFloat(5),
-                                    observations = reader.GetString(6),
-                                    receivedFull = reader.GetInt32(7),
-                                    bowlEmpty = reader.GetInt32(8),
-                                    collectorId = reader.GetInt32(9),
-                                    headquarterId = reader.GetInt32(10),
-                                    measureId = reader.GetInt32(11),
-                                    methodPaymentId = reader.GetInt32(12),
-                                    productId = reader.GetInt32(13),
-                                    email = reader.IsDBNull(14) ? null : reader.GetString(14)
+                                    id = reader.GetInt32(reader.GetOrdinal("id")),
+                                    receivedDate = reader.GetDateTime(reader.GetOrdinal("receivedDate")),
+                                    endDate = reader.GetDateTime(reader.GetOrdinal("endDate")),
+                                    fullPayment = reader.GetFloat(reader.GetOrdinal("fullPayment")),
+                                    priceUnit = reader.GetFloat(reader.GetOrdinal("priceUnit")),
+                                    netWeight = reader.GetFloat(reader.GetOrdinal("netWeight")),
+                                    observations = reader.IsDBNull(reader.GetOrdinal("observations"))
+                                                   ? null
+                                                   : reader.GetString(reader.GetOrdinal("observations")),
+                                    receivedFull = reader.GetInt32(reader.GetOrdinal("receivedFull")),
+                                    bowlEmpty = reader.GetInt32(reader.GetOrdinal("bowlEmpty")),
+                                    collectorId = reader.GetInt32(reader.GetOrdinal("collectorId")),
+                                    collectedName = reader.GetString(reader.GetOrdinal("CollectedName")), // Nombre del recolector
+                                    headquarterId = reader.GetInt32(reader.GetOrdinal("headquarterId")),
+                                    email = reader.IsDBNull(reader.GetOrdinal("email"))
+                                            ? null
+                                            : reader.GetString(reader.GetOrdinal("email")),
+                                    address = reader.GetString(reader.GetOrdinal("address")),
+                                    numberPhone = reader.GetString(reader.GetOrdinal("HeadquarterPhone")),
+                                    businessTypeId = reader.GetInt32(reader.GetOrdinal("typeBusinessId")),
+                                    businessType = reader.GetString(reader.GetOrdinal("BusinessType")), // Tipo de negocio
+                                    nameHeadquarter = reader.GetString(reader.GetOrdinal("nameHeadquarter")), // Nombre de la sede
+                                    nitCc = reader.GetString(reader.GetOrdinal("nitCc")), // NIT del cliente
+                                    nameClient = reader.GetString(reader.GetOrdinal("nameClient")),
+                                    seria_number = reader.GetString(reader.GetOrdinal("serial_number"))
                                 };
                             }
                         }
@@ -1864,10 +1948,16 @@ namespace ResiGrass_API.Logic
                             }
 
                             var storedPassword = reader.GetString(reader.GetOrdinal("password"));
-                            //                            var storedStatus = reader.GetBoolean(reader.GetOrdinal("status"));
+                            var storedStatus = reader.GetBoolean(reader.GetOrdinal("status")); 
+
+                            if (!storedStatus)
+                            {
+                                response.Success = false;
+                                response.Message = "El usuario no está habilitado.";
+                                return response;
+                            }
 
                             reader.Close();
-
 
                             string hashedInputPassword = HashPassword(UserModel.password);
                             if (hashedInputPassword != storedPassword)
@@ -1891,9 +1981,8 @@ namespace ResiGrass_API.Logic
 
             return response;
         }
-
-
         #endregion
+
 
     }
 

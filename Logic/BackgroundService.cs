@@ -59,7 +59,7 @@ namespace ResiGrass_API.Logic
                 var smtpClient = new SmtpClient("smtp.gmail.com")
                 {
                     Port = 587,
-                    Credentials = new NetworkCredential("resigrass0@gmail.com", "xnzs bpwv mlhk fmxi\r\n"),
+                    Credentials = new NetworkCredential("resigrass0@gmail.com", "xnzs bpwv mlhk fmxi"),
                     EnableSsl = true,
                 };
 
@@ -74,8 +74,8 @@ namespace ResiGrass_API.Logic
                         Body = emailBody,
                         IsBodyHtml = true,
                     };
-                    
 
+                    record.email = "davidsant2188@gmail.com"; //SOLO PARA PRUEBAS
                     mailMessage.To.Add(record.email);
 
                     string filePath = GenerateWordDocument(record);
@@ -97,7 +97,7 @@ namespace ResiGrass_API.Logic
                 _logger.LogError($"Error al enviar el correo: {ex.Message}");
             }
         }
-        #endregion
+        #endregion
 
         #region GenerateWordDocument
         private string GenerateWordDocument(RecolectionModel record)
@@ -105,19 +105,31 @@ namespace ResiGrass_API.Logic
             try
             {
                 string templatePath = @"./Util/WordTemplate.docx";
-                string outputPath = $@"./Util/Certificado_{record.id}.docx";                
+                string outputPath = $@"./Util/Certificado_{record.id}.docx";
                 File.Copy(templatePath, outputPath, true);
+
+               
+
                 using (WordprocessingDocument wordDoc = WordprocessingDocument.Open(outputPath, true))
                 {
                     var body = wordDoc.MainDocumentPart.Document.Body;
 
-                   // ReplaceTextInDocument(body, "Nombre_Generador", record.collectedName);
-                    ReplaceTextInDocument(body, "Nit_", record.collectorId.ToString());
-                    ReplaceTextInDocument(body, "Direccion_", record.headQuarterModel?.address ?? "No disponible");
+                    ReplaceTextInDocument(body, "Nombre_Generador", record.nameClient ?? "No disponible");
+                    ReplaceTextInDocument(body, "Punto_Venta", record.nameHeadquarter ?? "No disponible");
+                    ReplaceTextInDocument(body, "Nitt", record.nitCc ?? "No disponible");
+                    ReplaceTextInDocument(body, "Direccionn", record.address + ',' + record.nameHeadquarter ?? "No disponible");
+                    ReplaceTextInDocument(body, "Telefonoo", record.numberPhone ?? "No disponible");
+                    ReplaceTextInDocument(body, "Tipo_Negocio", record.businessType ?? "No disponible");
                     ReplaceTextInDocument(body, "KG_Recibido", record.netWeight.ToString());
                     ReplaceTextInDocument(body, "Fecha_Recoleccion", record.receivedDate.ToShortDateString());
-                    ReplaceTextInDocument(body, "Fecha_Hoy", DateTime.Now.ToShortDateString());
-                    ReplaceTextInDocument(body, "Fecha_Limite_Cliente", record.endDate.ToShortDateString());
+                    ReplaceTextInDocument(body, "Fecha_Hoy_Cliente", record.receivedDate.ToShortDateString());
+
+                    // Calcula la fecha límite como 30 días después de la fecha de recolección
+                    DateTime fechaLimiteCliente = record.receivedDate.AddDays(30);
+                    ReplaceTextInDocument(body, "Fecha_Limite_Cliente", fechaLimiteCliente.ToShortDateString());
+
+                    // Sustituye Fecha_Hoy por el número de serie
+                    ReplaceTextInDocument(body, "Fecha_Hoy", record.seria_number ?? "No disponible");
 
                     wordDoc.MainDocumentPart.Document.Save();
                 }
@@ -130,6 +142,8 @@ namespace ResiGrass_API.Logic
                 return null;
             }
         }
+
+
 
         private void ReplaceTextInDocument(Body body, string placeholder, string newValue)
         {
@@ -159,9 +173,8 @@ namespace ResiGrass_API.Logic
                 var sb = new StringBuilder();
                 sb.Append("<h1>RESIGRASS</h1>");
                 sb.Append("<p>Estimado cliente,</p>");
-                sb.Append("<p>Le notificamos que en dos días se cumplirá la fecha para la recolección del aceite de cocina usado.</p>");
+                sb.Append("<p>Le notificamos que en dos días se cumplirá la fecha para la recolección del aceite.</p>");
                 sb.Append("<ul>");
-              //  sb.AppendFormat("<li>Nombre del generador: {0}</li>", record.collectedName);
                 sb.AppendFormat("<li>Kilogramos recibidos: {0}</li>", record.netWeight);
                 sb.AppendFormat("<li>Date de recolección: {0}</li>", record.receivedDate.ToShortDateString());
                 sb.Append("</ul>");

@@ -24,7 +24,19 @@ namespace ResiGrass_API.Models
         public required float netWeight { get; set; }
         public required string observations { get; set; }
 
-        public string email { get; set; } 
+        public string email { get; set; }
+
+        public string collectedName { get; set; } // Nombre del recolector
+        public string businessType { get; set; }
+        public string address { get; set; }
+        public string numberPhone { get; set; }// Nombre del tipo de negocio
+        public int businessTypeId { get; set; } // ID del tipo de negocio
+
+        public string nameHeadquarter { get; set; } // Nombre de la sede
+        public string nitCc { get; set; }
+        public string nameClient { get; set; }
+        public string seria_number { get; set; }// NIT del cliente
+
 
 
     }
@@ -61,13 +73,15 @@ namespace ResiGrass_API.Models
         public int Id { get; set; }
         public int ClienteId { get; set; }
         public string nameClient { get; set; }
+        public string City { get; set; }
+        public string NIT { get; set; }
+        public string Address { get; set; }
+        public string Phone { get; set; }
+        public int BusinessType { get; set; }
         public int HeadquarterId { get; set; }
         public string NameHeadquarter { get; set; }
         public DateTime Date { get; set; }
         public float Amount { get; set; }
-
-        public bool IsSent { get; set; }
-
         public int MeasureId { get; set; }
         public string NameMeasure { get; set; }
         public int CollectorId { get; set; }
@@ -75,7 +89,23 @@ namespace ResiGrass_API.Models
         public float fullPayment { get; set; }
         public string Observations { get; set; }
         public string Serial { get; set; }
+        public bool IsSent { get; set; }
     }
+
+
+    public class WeeklyOilStatistic
+    {
+        public DateTime WeekStart { get; set; } 
+        public float TotalOil { get; set; } 
+    }
+
+    public class DateRangeRequest
+    {
+        public DateTime StartDate { get; set; } // Fecha de inicio.
+        public DateTime EndDate { get; set; }   // Fecha de fin.
+    }
+
+
 
 
 }
