@@ -75,7 +75,7 @@ namespace ResiGrass_API.Logic
                         IsBodyHtml = true,
                     };
 
-                    record.email = "davidsant2188@gmail.com"; //SOLO PARA PRUEBAS
+                  //  record.email = "davidsant2188@gmail.com"; //SOLO PARA PRUEBAS
                     mailMessage.To.Add(record.email);
 
                     string filePath = GenerateWordDocument(record);

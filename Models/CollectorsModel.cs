@@ -22,6 +22,8 @@
         public  string numberPhoneCollector { get; set; }
         public string profile_image { get; set; }
 
+        public bool status { get; set; }
+
         public string nextSerialNumber { get; set; }
         public TypeCollectorsModelSelect? typeCollectorsModelId { get; set; }        
         
