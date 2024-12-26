@@ -59,7 +59,7 @@ namespace ResiGrass_API.Controllers
 
         #region ClientUpdate
         [HttpPut("ClientUpdate/{IdClient}")]
-       // [Authorize(AuthenticationSchemes = "Bearer")]
+        [Authorize(AuthenticationSchemes = "Bearer")]
         public IActionResult ClientUpdate(int IdClient, [FromBody] ClientModelInsert clientModel)
         {
             var existingClient = _dbQuery.GetClient(IdClient);

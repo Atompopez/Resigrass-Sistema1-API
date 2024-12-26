@@ -182,6 +182,19 @@ namespace ResiGrass_API.Controllers
         }
         #endregion
 
+        #region ColectionGet
+        [HttpPost("ColectionGet")]
+        [Authorize(AuthenticationSchemes = "Bearer")]
+        public IActionResult ColectionGet()
+        {
+
+            var client = _dbQuery.GetAllCollections();
+
+            return Ok(client);
+        }
+
+        #endregion
+
         #region GetTotalOilByDate
         [HttpPost("GetTotalOilByDate")]
         [Authorize(AuthenticationSchemes = "Bearer")]

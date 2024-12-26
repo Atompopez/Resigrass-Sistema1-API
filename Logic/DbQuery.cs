@@ -507,10 +507,10 @@ namespace ResiGrass_API.Logic
                                 {
                                     nitCc = reader.GetString(1),
                                     nameClient = reader.GetString(2),
-                                    corporateName = reader.IsDBNull(3) ? null : reader.GetString(3), // Manejo del campo corporate_name
-                                    dateCreationClient = reader.GetDateTime(4),
-                                    status = reader.GetBoolean(5),
-                                    typeBusinessId = reader.GetInt32(6),
+                                    corporateName = reader.IsDBNull(3) ? null : reader.GetString(6),
+                                    dateCreationClient = reader.GetDateTime(3),
+                                    status = reader.GetBoolean(4),
+                                    typeBusinessId = reader.GetInt32(5),
                                 };
                                 clients.Add(client);
                             }
