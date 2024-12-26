@@ -1307,6 +1307,12 @@ namespace ResiGrass_API.Logic
 
                             reader.Close();
 
+                            if (storedStatus == false)
+                            {
+                                response.Success = false;
+                                response.Message = "El usuario no se encuentra habilitado.";
+                                return response;
+                            }
                             string hashedInputPassword = HashPassword(LoginCollector.password);
                             if (hashedInputPassword != storedPassword)
                             {
