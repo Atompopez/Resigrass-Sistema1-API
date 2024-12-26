@@ -182,17 +182,32 @@ namespace ResiGrass_API.Controllers
         }
         #endregion
 
-        #region ColectionGet
-        [HttpPost("ColectionGet")]
+        #region GetTotalOilByDate
+        [HttpPost("GetTotalOilByDate")]
         [Authorize(AuthenticationSchemes = "Bearer")]
-        public IActionResult ColectionGet()
+        public IActionResult GetTotalOilByDate([FromBody] DateRangeRequest dateRange)
         {
+            if (dateRange == null || dateRange.StartDate == default || dateRange.EndDate == default)
+            {
+                return BadRequest("El rango de fechas es inválido.");
+            }
 
-            var client = _dbQuery.GetAllCollections();
+            if (dateRange.StartDate > dateRange.EndDate)
+            {
+                return BadRequest("La fecha de inicio no puede ser mayor que la fecha de fin.");
+            }
 
-            return Ok(client);
+            try
+            {
+                var totalOil = _dbQuery.GetTotalOilByDateRange(dateRange.StartDate, dateRange.EndDate);
+
+                return Ok(new { TotalOil = totalOil });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error al procesar la solicitud: {ex.Message}");
+            }
         }
-
         #endregion
 
         #region AllCollectorsGet
