@@ -801,10 +801,30 @@ namespace ResiGrass_API.Logic
                         cmd.Parameters.Add("@status", NpgsqlTypes.NpgsqlDbType.Bit).Value = headQuarterModel.status ? (object)true : (object)false;
                         cmd.Parameters.AddWithValue("@clientId", headQuarterModel.clientId);
                         cmd.Parameters.AddWithValue("@localityId", headQuarterModel.localityId);
-                      
-                        byte[] signatureImageBytes = string.IsNullOrEmpty(headQuarterModel.SignatureImage)
-                            ? null
-                            : Convert.FromBase64String(headQuarterModel.SignatureImage);
+
+                        byte[] signatureImageBytes = null;
+                        if (!string.IsNullOrEmpty(headQuarterModel.SignatureImage))
+                        {
+                            string cleanedBase64 = headQuarterModel.SignatureImage.Replace(" ", "").Replace("\n", "").Replace("\r", "");
+
+                            if (IsBase64String(cleanedBase64))
+                            {
+                                try
+                                {
+                                    signatureImageBytes = Convert.FromBase64String(cleanedBase64);
+                                }
+                                catch (FormatException ex)
+                                {
+                                    Console.WriteLine($"Error converting signature image to Base-64: {ex.Message}");
+                                 
+                                }
+                            }
+                            else
+                            {
+                                Console.WriteLine("The provided string is not a valid Base-64 string.");
+                                // Handle the invalid Base64 string case
+                            }
+                        }
 
                         cmd.Parameters.AddWithValue("@signatureImage", (object)signatureImageBytes ?? DBNull.Value);
 
@@ -838,6 +858,21 @@ namespace ResiGrass_API.Logic
             }
 
             return headQuarters;
+        }
+
+        private bool IsBase64String(string base64)
+        {
+            if (string.IsNullOrEmpty(base64) || base64.Length % 4 != 0)
+                return false;
+
+            // Check for invalid characters
+            foreach (char c in base64)
+            {
+                if (!char.IsLetterOrDigit(c) && c != '+' && c != '/' && c != '=')
+                    return false;
+            }
+
+            return true;
         }
         #endregion
 
