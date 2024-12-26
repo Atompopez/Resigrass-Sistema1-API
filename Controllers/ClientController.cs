@@ -118,7 +118,7 @@ namespace ResiGrass_API.Controllers
 
         #region HeadquartersUpdate
         [HttpPut("HeadquartersUpdate/{IdHeadquarter}")]
-        [Authorize(AuthenticationSchemes = "Bearer")]
+       [Authorize(AuthenticationSchemes = "Bearer")]
         public IActionResult HeadquartersUpdate(int IdHeadquarter, [FromBody] HeadQuartersModelCreation HeadQuarter)
         {
             var existingHeadquarter = _dbQuery.HeadquarterGet(IdHeadquarter);
