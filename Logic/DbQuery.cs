@@ -1307,12 +1307,7 @@ namespace ResiGrass_API.Logic
 
                             reader.Close();
 
-                            if (storedStatus == false)
-                            {
-                                response.Success = false;
-                                response.Message = "El usuario no se encuentra habilitado.";
-                                return response;
-                            }
+    
                             string hashedInputPassword = HashPassword(LoginCollector.password);
                             if (hashedInputPassword != storedPassword)
                             {
@@ -1323,7 +1318,7 @@ namespace ResiGrass_API.Logic
 
                             string queryCollector = @"
                             SELECT c.id, c.""nameCollector"", c.""numberPhoneCollector"", 
-                                   tc.""descriptionCollector"", c.""profile_image""
+                                   tc.""descriptionCollector"", c.""profile_image"", c.""status""
                             FROM collector c
                             INNER JOIN ""typeCollector"" tc ON c.""typeCollectorId"" = tc.id
                             INNER JOIN ""loginCollector"" lc ON c.""loginCollectorId"" = lc.id
@@ -1335,8 +1330,20 @@ namespace ResiGrass_API.Logic
 
                                 using (var collectorReader = cmdCollector.ExecuteReader())
                                 {
+
+                                    
                                     if (collectorReader.Read())
                                     {
+                                        var storedStatus2 = collectorReader.GetBoolean(collectorReader.GetOrdinal("status"));
+
+
+
+                                        if (storedStatus2 == false)
+                                        {
+                                            response.Success = false;
+                                            response.Message = "El usuario no se encuentra habilitado.";
+                                            return response;
+                                        }
                                         var collectorId = collectorReader.GetInt32(0);
 
                                         var collectorData = new CollectorsModelSelect
@@ -1347,7 +1354,8 @@ namespace ResiGrass_API.Logic
                                             typeCollectorsModelId = new TypeCollectorsModelSelect
                                             {
                                                 descriptionCollector = collectorReader.GetString(3),
-                                            }
+                                            },
+                                            status = collectorReader.GetBoolean(4),
                                         };
 
                                         
