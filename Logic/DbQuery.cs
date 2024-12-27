@@ -1355,7 +1355,7 @@ namespace ResiGrass_API.Logic
                                             {
                                                 descriptionCollector = collectorReader.GetString(3),
                                             },
-                                            status = collectorReader.GetBoolean(4),
+                                            status = collectorReader.GetBoolean(5),
                                         };
 
                                         
