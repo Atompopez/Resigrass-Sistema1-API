@@ -99,7 +99,7 @@ namespace ResiGrass_API.Models
         public string Serial { get; set; }
         public bool IsSent { get; set; }
         public string BusinessTypeName { get; set; } // Nuevo campo
-        public string SignatureImage { get; set; } // Nuevo campo
+        public bool SignatureImage { get; set; } // Nuevo campo
     }
 
 
