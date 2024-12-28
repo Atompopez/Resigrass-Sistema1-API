@@ -21,7 +21,7 @@
         public int localityId { get; set; }
         public int clientId { get; set; }
         public string address { get; set; }
-        public string signatureImage { get; set; }
+        public string? signatureImage { get; set; }
         public bool status { get; set; }
         public string email { get; set; }
         public required string nameHeadquarter { get; set; }
@@ -33,7 +33,7 @@
         public required string numberPhone { get; set; }
         public required int localityId { get; set; }
         public required string nameHeadquarter { get; set; }
-        public string SignatureImage { get; set; }
+        public string? SignatureImage { get; set; }
         public required int clientId { get; set; }
         public required string address { get; set; }
         public  string email { get; set; }

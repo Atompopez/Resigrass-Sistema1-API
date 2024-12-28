@@ -241,11 +241,12 @@ namespace ResiGrass_API.Logic
                     conn.Open();
 
                     string query = @"
-            SELECT c.""id"", c.""nitCc"", c.""nameClient"", c.""corporate_name"", c.""dateCreationClient"", 
+                      SELECT c.""id"", c.""nitCc"", c.""nameClient"", c.""corporate_name"", c.""dateCreationClient"", 
                    c.""status"", c.""typeBusinessId"",
                    t.""id"", t.""businessDescription"", t.""status""
             FROM ""client"" c
             INNER JOIN ""typeBusiness"" t ON c.""typeBusinessId"" = t.""id""
+			
         ";
 
                     if (idTypeBusiness == 0)
@@ -260,6 +261,7 @@ namespace ResiGrass_API.Logic
                     {
                         query += @" WHERE c.""typeBusinessId"" = @idTypeBusiness AND c.""status"" = '1'";
                     }
+                    query += @"ORDER BY C.""nameClient""";
 
                     using (var cmd = new NpgsqlCommand(query, conn))
                     {
@@ -1506,30 +1508,32 @@ namespace ResiGrass_API.Logic
                     conn.Open();
 
                     string query = @"
-                SELECT 
-                    c.""id"" AS Id,
-                    cl.""id"" AS ClienteId, cl.""nameClient"" AS nameClient,
-                    lo.""nameLocality"" AS City,
-                    cl.""nitCc"" AS Nit,
-                    h.""address"" AS Address,
-                    h.""numberPhone"" AS Phone,
-                    cl.""typeBusinessId"" AS BusinessType,
-                    h.""id"" AS HeadquarterId, h.""nameHeadquarter"" AS NameHeadquarter,
-                    c.""receivedDate"" AS Date,
-                    c.""netWeight"" AS Cantidad,
-                    m.""id"" AS MedidaId, m.""abbreviation"" AS MedidaNombre,
-                    col.""id"" AS RecolectorId, col.""nameCollector"" AS RecolectorNombre,
-                    c.""fullPayment"" AS Pago,
-                    c.""observations"" AS Observaciones,
-                    c.""serial_number"" AS Serial,
-                    c.""is_sent"" AS IsSent
-                FROM collection c
-                INNER JOIN headquarter h ON c.""headquarterId"" = h.""id""
-                INNER JOIN client cl ON h.""clientId"" = cl.""id""
-                INNER JOIN measure m ON c.""measureId"" = m.""id""
-                INNER JOIN collector col ON c.""collectorId"" = col.""id""
-                INNER JOIN locality lo ON h.""localityId"" = lo.""id""
-                ORDER BY c.""serial_number""";
+            SELECT 
+                c.""id"" AS Id,
+                cl.""id"" AS ClienteId, cl.""nameClient"" AS nameClient,
+                lo.""nameLocality"" AS City,
+                cl.""nitCc"" AS Nit,
+                h.""address"" AS Address,
+                h.""numberPhone"" AS Phone,
+                cl.""typeBusinessId"" AS BusinessType,
+                h.""id"" AS HeadquarterId, h.""nameHeadquarter"" AS NameHeadquarter,
+                c.""receivedDate"" AS Date,
+                c.""netWeight"" AS Cantidad,
+                m.""id"" AS MedidaId, m.""abbreviation"" AS MedidaNombre,
+                col.""id"" AS RecolectorId, col.""nameCollector"" AS RecolectorNombre,
+                c.""fullPayment"" AS Pago,
+                c.""observations"" AS Observaciones,
+                c.""serial_number"" AS Serial,
+                c.""is_sent"" AS IsSent,
+                cl.""corporate_name"" AS TipoDeNegocio,
+                h.""signature_image"" AS Firma
+            FROM collection c
+            INNER JOIN headquarter h ON c.""headquarterId"" = h.""id""
+            INNER JOIN client cl ON h.""clientId"" = cl.""id""
+            INNER JOIN measure m ON c.""measureId"" = m.""id""
+            INNER JOIN collector col ON c.""collectorId"" = col.""id""
+            INNER JOIN locality lo ON h.""localityId"" = lo.""id""
+            ORDER BY c.""serial_number""";
 
                     using (var cmd = new NpgsqlCommand(query, conn))
                     {
@@ -1560,7 +1564,13 @@ namespace ResiGrass_API.Logic
                                                    ? null
                                                    : reader.GetString(reader.GetOrdinal("Observaciones")),
                                     Serial = reader.GetString(reader.GetOrdinal("Serial")),
-                                    IsSent = reader.GetBoolean(reader.GetOrdinal("IsSent"))
+                                    IsSent = reader.GetBoolean(reader.GetOrdinal("IsSent")),
+                                    BusinessTypeName = reader.IsDBNull(reader.GetOrdinal("TipoDeNegocio"))
+                                                       ? null
+                                                       : reader.GetString(reader.GetOrdinal("TipoDeNegocio")),
+                                    SignatureImage = reader.IsDBNull(reader.GetOrdinal("Firma"))
+                                                     ? null
+                                                     : reader.GetString(reader.GetOrdinal("Firma"))
                                 };
 
                                 collections.Add(collection);
@@ -1578,22 +1588,29 @@ namespace ResiGrass_API.Logic
         }
         #endregion
 
-        #region GetTotalOilByDateRange
-        public float GetTotalOilByDateRange(DateTime startDate, DateTime endDate)
+        #region GetWeeklyOilByDateRange
+        public List<WeeklyOilData> GetWeeklyOilByDateRange(DateTime startDate, DateTime endDate)
         {
-            float totalOil = 0;
+            var weeklyOilData = new List<WeeklyOilData>();
 
             try
             {
+
+                startDate = startDate.Date;
+                endDate = endDate.Date;
+
                 using (var conn = new NpgsqlConnection(_connectionString))
                 {
                     conn.Open();
 
                     string query = @"
-                SELECT 
-                    COALESCE(SUM(c.""netWeight""), 0) AS TotalOil
-                FROM collection c
-                WHERE c.""receivedDate"" BETWEEN @startDate AND @endDate";
+            SELECT 
+                DATE_TRUNC('week', c.""receivedDate"") AS WeekStart,
+                COALESCE(SUM(c.""netWeight""), 0) AS TotalOil
+            FROM collection c
+            WHERE DATE(c.""receivedDate"") BETWEEN DATE(@startDate) AND DATE(@endDate)
+            GROUP BY WeekStart
+            ORDER BY WeekStart;";
 
                     using (var cmd = new NpgsqlCommand(query, conn))
                     {
@@ -1602,9 +1619,17 @@ namespace ResiGrass_API.Logic
 
                         using (var reader = cmd.ExecuteReader())
                         {
-                            if (reader.Read())
+                            while (reader.Read())
                             {
-                                totalOil = reader.GetFloat(reader.GetOrdinal("TotalOil"));
+                                var weekStart = reader.GetDateTime(reader.GetOrdinal("WeekStart"));
+                                var totalOil = reader.GetDouble(reader.GetOrdinal("TotalOil"));
+
+                                weeklyOilData.Add(new WeeklyOilData
+                                {
+                                    WeekStart = weekStart,
+                                    WeekEnd = weekStart.AddDays(6), // El fin de la semana es 6 días después
+                                    TotalOil = totalOil
+                                });
                             }
                         }
                     }
@@ -1612,13 +1637,11 @@ namespace ResiGrass_API.Logic
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al obtener el total de aceite: {ex.Message}");
+                Console.WriteLine($"Error al obtener el total de aceite por rango de fechas: {ex.Message}");
             }
 
-            return totalOil;
-        }
-
-
+            return weeklyOilData;
+        } 
         #endregion
 
         #region UpdateCollection

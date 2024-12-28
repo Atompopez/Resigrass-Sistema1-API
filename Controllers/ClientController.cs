@@ -39,7 +39,7 @@ namespace ResiGrass_API.Controllers
 
         #region GetClients
         [HttpGet("{idTypeBusiness}")]
-        //[Authorize(AuthenticationSchemes = "Bearer")]
+        [Authorize(AuthenticationSchemes = "Bearer")]
         public IActionResult GetClients(int idTypeBusiness)
         {
             var client = _dbQuery.GetClients(idTypeBusiness);
