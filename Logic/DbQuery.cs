@@ -1526,7 +1526,7 @@ namespace ResiGrass_API.Logic
                 c.""serial_number"" AS Serial,
                 c.""is_sent"" AS IsSent,
                 cl.""corporate_name"" AS TipoDeNegocio,
-                h.""signature_image"" AS Firma
+                h.""signature_image"" is not null AS Firma
             FROM collection c
             INNER JOIN headquarter h ON c.""headquarterId"" = h.""id""
             INNER JOIN client cl ON h.""clientId"" = cl.""id""
@@ -1568,9 +1568,7 @@ namespace ResiGrass_API.Logic
                                     BusinessTypeName = reader.IsDBNull(reader.GetOrdinal("TipoDeNegocio"))
                                                        ? null
                                                        : reader.GetString(reader.GetOrdinal("TipoDeNegocio")),
-                                    SignatureImage = reader.IsDBNull(reader.GetOrdinal("Firma"))
-                                                     ? null
-                                                     : reader.GetString(reader.GetOrdinal("Firma"))
+                                    SignatureImage = reader.GetBoolean(reader.GetOrdinal("Firma"));
                                 };
 
                                 collections.Add(collection);
