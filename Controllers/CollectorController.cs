@@ -212,7 +212,7 @@ namespace ResiGrass_API.Controllers
 
             try
             {
-                var totalOil = _dbQuery.GetTotalOilByDateRange(dateRange.StartDate, dateRange.EndDate);
+                var totalOil = _dbQuery.GetWeeklyOilByDateRange(dateRange.StartDate, dateRange.EndDate);
 
                 return Ok(new { TotalOil = totalOil });
             }

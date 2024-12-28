@@ -68,6 +68,14 @@ namespace ResiGrass_API.Models
 
     }
 
+    public class WeeklyOilData
+    {
+        public DateTime WeekStart { get; set; }
+        public DateTime WeekEnd { get; set; }
+        public double TotalOil { get; set; }
+    }
+
+
     public class RecolectionModelStat
     {
         public int Id { get; set; }
@@ -90,6 +98,8 @@ namespace ResiGrass_API.Models
         public string Observations { get; set; }
         public string Serial { get; set; }
         public bool IsSent { get; set; }
+        public string BusinessTypeName { get; set; } // Nuevo campo
+        public string SignatureImage { get; set; } // Nuevo campo
     }
 
 
