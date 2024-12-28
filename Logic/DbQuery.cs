@@ -1568,7 +1568,7 @@ namespace ResiGrass_API.Logic
                                     BusinessTypeName = reader.IsDBNull(reader.GetOrdinal("TipoDeNegocio"))
                                                        ? null
                                                        : reader.GetString(reader.GetOrdinal("TipoDeNegocio")),
-                                    SignatureImage = reader.GetBoolean(reader.GetOrdinal("Firma"));
+                                    SignatureImage = reader.GetBoolean(reader.GetOrdinal("Firma"))
                                 };
 
                                 collections.Add(collection);
