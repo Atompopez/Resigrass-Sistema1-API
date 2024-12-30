@@ -1167,7 +1167,7 @@ namespace ResiGrass_API.Logic
                         cmdCollector.Parameters.AddWithValue("@nameCollector", collectorModel.nameCollector);
                         cmdCollector.Parameters.AddWithValue("@numberPhoneCollector", collectorModel.numberPhoneCollector);
                         cmdCollector.Parameters.AddWithValue("@dateCreationCollector", DateTime.Now);
-                        var statusBit = loginCollectorModel.status ? new BitArray(new[] { true }) : new BitArray(new[] { false });
+                        var statusBit = collectorModel.status ? new BitArray(new[] { true }) : new BitArray(new[] { false });
                         cmdCollector.Parameters.AddWithValue("@status", statusBit);
                         cmdCollector.Parameters.AddWithValue("@loginCollectorId", loginCollectorId);
                         cmdCollector.Parameters.AddWithValue("@typeCollectorId", collectorModel.typeCollectorId);
