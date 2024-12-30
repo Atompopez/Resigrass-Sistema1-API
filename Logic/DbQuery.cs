@@ -1608,7 +1608,9 @@ namespace ResiGrass_API.Logic
                 DATE_TRUNC('week', c.""receivedDate"") AS WeekStart,
                 COALESCE(SUM(c.""netWeight""), 0) AS TotalOil
             FROM collection c
+            INNER JOIN headquarter h ON c.""headquarterId"" = h.""id""
             WHERE DATE(c.""receivedDate"") BETWEEN DATE(@startDate) AND DATE(@endDate)
+            AND h.""is_certified"" = B'0'
             GROUP BY WeekStart
             ORDER BY WeekStart;";
 
