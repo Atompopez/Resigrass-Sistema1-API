@@ -73,7 +73,7 @@ namespace ResiGrass_API.Controllers
             try
             {
 
-                clientModel.nitCc = existingClient.FirstOrDefault()?.nitCc;
+                //clientModel.nitCc = existingClient.FirstOrDefault()?.nitCc;
 
                 var updatedClient = _dbQuery.ClientUpdate(clientModel, IdClient);
                 if (updatedClient.Count == 0)
