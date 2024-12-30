@@ -1610,7 +1610,7 @@ namespace ResiGrass_API.Logic
             FROM collection c
             INNER JOIN headquarter h ON c.""headquarterId"" = h.""id""
             WHERE DATE(c.""receivedDate"") BETWEEN DATE(@startDate) AND DATE(@endDate)
-            AND h.""is_certified"" = B'0'
+            AND h.""is_certified"" = B'1'
             GROUP BY WeekStart
             ORDER BY WeekStart;";
 
