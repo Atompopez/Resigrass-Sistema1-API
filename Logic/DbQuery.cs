@@ -597,7 +597,8 @@ namespace ResiGrass_API.Logic
                                             nameLocality = reader.GetString(6),
                                         },
                                         status = reader.GetFieldValue<bool>(7),
-                                        email = reader.GetString(8),
+                                        email = reader.IsDBNull(8) ? null :
+                                                reader.GetString(8),
                                         signatureImage = reader.IsDBNull(9)
                                             ? null
                                             : Convert.ToBase64String((byte[])reader["signature_image"])
