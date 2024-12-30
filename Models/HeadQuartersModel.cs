@@ -23,7 +23,7 @@
         public string address { get; set; }
         public string? signatureImage { get; set; }
         public bool status { get; set; }
-        public string email { get; set; }
+        public string? email { get; set; }
         public required string nameHeadquarter { get; set; }
         public LocalitiesModelGet? localitiesData { get; set; }                
     }
