@@ -785,13 +785,14 @@ namespace ResiGrass_API.Logic
                     ""status"" = @status, 
                     ""clientId"" = @clientId, 
                     ""localityId"" = @localityId,
-                    ""signature_image"" = @signatureImage
+                    ""signature_image"" = @signatureImage,
+                    ""email"" = @email
                 WHERE 
                     ""id"" = @id
                 RETURNING 
                     id, ""nameHeadquarter"", ""numberPhone"", ""address"", 
                     ""dateCreationHeadquarter"", ""status"", ""clientId"", 
-                    ""localityId"", ""signature_image"";
+                    ""localityId"", ""signature_image"", ""email"";
             ";
 
                     using (var cmd = new NpgsqlCommand(query, conn))
@@ -804,6 +805,7 @@ namespace ResiGrass_API.Logic
                         cmd.Parameters.Add("@status", NpgsqlTypes.NpgsqlDbType.Bit).Value = headQuarterModel.status ? (object)true : (object)false;
                         cmd.Parameters.AddWithValue("@clientId", headQuarterModel.clientId);
                         cmd.Parameters.AddWithValue("@localityId", headQuarterModel.localityId);
+                        cmd.Parameters.AddWithValue("@email", headQuarterModel.email);
 
                         byte[] signatureImageBytes = null;
                         if (!string.IsNullOrEmpty(headQuarterModel.SignatureImage))

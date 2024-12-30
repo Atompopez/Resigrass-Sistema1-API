@@ -36,7 +36,7 @@
         public string? SignatureImage { get; set; }
         public required int clientId { get; set; }
         public required string address { get; set; }
-        public  string email { get; set; }
+        public  string? email { get; set; }
         public required DateTime dateCreationHeadquarter { get; set; }
         public required bool status { get; set; }
     }
