@@ -18,7 +18,6 @@ namespace ResiGrass_API.Controllers
 
         #region GetWhatsappNumber
         [HttpGet("WhatsappNumber")]
-        [Authorize(AuthenticationSchemes = "Bearer")]
         public IActionResult GetWhatsappNumber()
         {
             var whatsappNumber = _dbQuery.GetWhatsappNumber();
