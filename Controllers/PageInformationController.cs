@@ -7,7 +7,6 @@ namespace ResiGrass_API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    [Authorize(AuthenticationSchemes = "Bearer")]
     public class PageInformationController : Controller
     {
         private readonly DbQuery _dbQuery;

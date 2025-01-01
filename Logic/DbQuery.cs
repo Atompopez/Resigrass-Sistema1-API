@@ -2096,7 +2096,7 @@ namespace ResiGrass_API.Logic
                         using (var reader = cmdCheckUser.ExecuteReader())
                         {
                             if (!reader.Read())
-                                return "No hay numeros para traer";
+                                return "Error";
                             return reader.GetString(0);
                         }
                     }
@@ -2104,7 +2104,7 @@ namespace ResiGrass_API.Logic
             }
             catch (Exception ex)
             {
-                return "Error interno trayendo el numero";
+                return "Error";
             }
         }
         #endregion
