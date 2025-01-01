@@ -2060,7 +2060,53 @@ namespace ResiGrass_API.Logic
         }
         #endregion
 
+        #region GetWhatsappNumber
+        public string GetWhatsappNumber()
+        {
+            try
+            {
+                using (var conn = new NpgsqlConnection(_connectionString))
+                {
+                    conn.Open();
+                    string queryCheckUser = @"WITH last_sent AS (
+                                                  SELECT id
+                                                  FROM whatsapp_number
+                                                  WHERE is_last_sent = B'1'
+                                                  LIMIT 1
+                                                ),
+                                                next_sent AS (
+                                                  SELECT id
+                                                  FROM whatsapp_number
+                                                  WHERE id > (SELECT id FROM last_sent)
+                                                  ORDER BY id ASC
+                                                  LIMIT 1
+                                                )
+                                                UPDATE whatsapp_number
+                                                SET is_last_sent = 
+                                                  CASE
+                                                    WHEN id = COALESCE((SELECT id FROM next_sent), (SELECT id FROM whatsapp_number ORDER BY id ASC LIMIT 1)) THEN B'1'
+                                                    ELSE B'0'
+                                                  END;
 
+                                                SELECT number FROM whatsapp_number
+                                                WHERE is_last_sent = B'1'";
+
+                    using (var cmdCheckUser = new NpgsqlCommand(queryCheckUser, conn))
+                    {
+                        using (var reader = cmdCheckUser.ExecuteReader())
+                        {
+                            if (!reader.Read())
+                                return "No hay numeros para traer";
+                            return reader.GetString(0);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return "Error interno trayendo el numero";
+            }
+        }
+        #endregion
     }
-
 }
