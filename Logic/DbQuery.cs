@@ -7,6 +7,7 @@ using DocumentFormat.OpenXml.Office.Word;
 using System.Data;
 using DocumentFormat.OpenXml.Drawing.Diagrams;
 using static IdentityServer4.Models.IdentityResources;
+using iText.StyledXmlParser.Jsoup.Select;
 
 
 
@@ -20,6 +21,52 @@ namespace ResiGrass_API.Logic
         {
             _connectionString = connectionString;            
         }
+
+        #region GetNextNumber
+        public int GetNextNumber(int IdCollector)
+        {
+            string nextSerial = "0";
+            try
+            {
+                using (var conn = new NpgsqlConnection(_connectionString))
+                {
+                    conn.Open();
+                    string query;
+
+                    string serialQuery = @"
+                            SELECT ""serial_number""
+                            FROM collection
+                            WHERE ""collectorId"" = @collectorId
+                            ORDER BY ""serial_number"" DESC
+                            LIMIT 1";
+
+                    using (var serialCmd = new NpgsqlCommand(serialQuery, conn))
+                    {
+                        serialCmd.Parameters.AddWithValue("@collectorId", IdCollector);
+
+                        var result = serialCmd.ExecuteScalar();
+                        
+
+                        if (result != null)
+                        {
+                            var lastSerial = result.ToString();
+                            var lastNumber = int.Parse(lastSerial.Split('-').Last());
+                            nextSerial = $"{(lastNumber + 1):D1}";
+                        }
+                        else
+                        {
+                            nextSerial = $"1";
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al obtener los tipos de negocio: {ex}");
+            }
+            return int.Parse(nextSerial);
+        }
+        #endregion
 
         #region Municipalities
         public List<MunicipalityModel> GetMunicipalities()

@@ -18,6 +18,22 @@ namespace ResiGrass_API.Controllers
             bk = emailNotificationService;
         }
 
+        #region GetNextNumber
+        [HttpGet("GetNextNumber/{idClient}")]
+        [Authorize(AuthenticationSchemes = "Bearer")]
+        public IActionResult GetNextNumber(int idClient)
+        {
+            var number = _dbQuery.GetNextNumber(idClient);
+            if (number != 0)
+            {
+                return Ok(number);
+            }
+            else
+            {
+                return BadRequest("Error al consultar el tipo de recolector");
+            }
+        }
+        #endregion
 
         #region GetTypeCollector
         [HttpGet("TypeCollector")]
