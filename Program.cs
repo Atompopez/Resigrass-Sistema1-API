@@ -15,11 +15,11 @@ builder.Services.AddSingleton<DbQuery>(new DbQuery(ResiGrass_API.Logic.Globals.C
 // Habilita CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowLocalhost3000", builder =>
+    options.AddPolicy("AllowResigrassAndLocalhost", policy =>
     {
-        builder.WithOrigins("http://localhost:3000") // Origen permitido
-               .AllowAnyHeader()                    // Permite cualquier encabezado
-               .AllowAnyMethod();                   // Permite cualquier método (GET, POST, etc.)
+        policy.WithOrigins("http://localhost:3000", "https://www.resigrass.com.co") // Orígenes permitidos
+              .AllowAnyHeader()    // Permite cualquier encabezado
+              .AllowAnyMethod();   // Permite cualquier método (GET, POST, etc.)
     });
 });
 
@@ -87,7 +87,7 @@ if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
 }
 
 // Habilita CORS antes de Authentication y Authorization
-app.UseCors("AllowLocalhost3000");
+app.UseCors("AllowResigrassAndLocalhost");
 
 app.UseAuthentication();
 app.UseAuthorization();
