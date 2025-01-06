@@ -2155,5 +2155,36 @@ namespace ResiGrass_API.Logic
             }
         }
         #endregion
+
+        #region GetPinCollector
+        public int GetPinCollector(int idUser)
+        {
+            try
+            {
+                using (var conn = new NpgsqlConnection(_connectionString))
+                {
+                    conn.Open();
+                    string queryCheckUser = @"SELECT pin FROM pin_collector
+                                                WHERE id_collector = @idUser";
+
+                    using (var cmdCheckUser = new NpgsqlCommand(queryCheckUser, conn))
+                    {
+                        cmdCheckUser.Parameters.AddWithValue("@idUser", idUser);
+
+                        using (var reader = cmdCheckUser.ExecuteReader())
+                        {
+                            if (!reader.Read())
+                                return 0;
+                            return reader.GetInt32(reader.GetOrdinal("pin"));
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return 0;
+            }
+        }
+        #endregion
     }
 }

@@ -24,5 +24,16 @@ namespace ResiGrass_API.Controllers
             return Ok(whatsappNumber);
         }
         #endregion
+
+        #region GetIsValidCollector
+        [HttpGet("GetIsValidCollector/{idCollector}/{pin}")]
+        public IActionResult GetIsValidCollector(int idCollector, int pin)
+        {
+            var pin_db = _dbQuery.GetPinCollector(idCollector);
+            if (pin_db == 0)
+                return BadRequest("Error en la consulta");
+            return Ok(pin_db == pin);
+        }
+        #endregion
     }
 }
