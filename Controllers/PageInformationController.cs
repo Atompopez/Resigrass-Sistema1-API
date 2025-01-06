@@ -35,5 +35,18 @@ namespace ResiGrass_API.Controllers
             return Ok(pin_db == pin);
         }
         #endregion
+
+        #region GetDataCollector
+        [HttpGet("GetDataCollector/{id}")]
+        public IActionResult GetDataCollector(int id)
+        {
+            var data = _dbQuery.GetDataCollector(id);
+
+            if (data is not null)
+                return Ok(data); 
+
+            return BadRequest("Error en la consulta");
+        }
+        #endregion
     }
 }

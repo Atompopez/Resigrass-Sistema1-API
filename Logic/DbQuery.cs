@@ -2186,5 +2186,48 @@ namespace ResiGrass_API.Logic
             }
         }
         #endregion
+
+        #region #region GetDataCollector
+        public DataCollector GetDataCollector(int idUser)
+        {
+            try
+            {
+                using (var conn = new NpgsqlConnection(_connectionString))
+                {
+                    conn.Open();
+                    string queryCheckUser = @"SELECT 
+	                                            profile_image, 
+	                                            ""nameCollector"", 
+	                                            ""numberPhoneCollector"", 
+	                                            ""dateCreationCollector"" 
+                                            FROM resigrass.collector
+                                            WHERE id = @idUser";
+
+                    using (var cmdCheckUser = new NpgsqlCommand(queryCheckUser, conn))
+                    {
+                        cmdCheckUser.Parameters.AddWithValue("@idUser", idUser);
+
+                        using (var reader = cmdCheckUser.ExecuteReader())
+                        {
+                            if (!reader.Read())
+                                return new DataCollector();
+
+                            return new DataCollector
+                            {
+                                profile_image = reader.IsDBNull(0) ? null : Convert.ToBase64String((byte[])reader[0]),
+                                nameCollector = reader.GetString(1),
+                                numberPhoneCollector = reader.GetString(2),
+                                dateCreationCollector = reader.GetDateTime(3).ToString("dd/MM/yyyy")
+                            };
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return new DataCollector();
+            }
+        }
+        #endregion
     }
 }
