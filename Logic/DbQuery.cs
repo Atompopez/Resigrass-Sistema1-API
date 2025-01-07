@@ -1666,7 +1666,7 @@ namespace ResiGrass_API.Logic
                                     (SELECT COALESCE(SUM(c2.""netWeight""), 0) FROM collection c2
                                      INNER JOIN headquarter h2 ON c2.""headquarterId"" = h2.""id""
                                      WHERE h2.""is_certified"" = B'1'
-	                                 AND DATE(c2.""receivedDate"") BETWEEN DATE(@startDate) AND DATE(@endDate'))
+	                                 AND DATE(c2.""receivedDate"") BETWEEN DATE(@startDate) AND DATE(@endDate))
 	                                 AS TotalOilAllWeeks
                                 FROM collection c
                                 INNER JOIN headquarter h ON c.""headquarterId"" = h.""id""
