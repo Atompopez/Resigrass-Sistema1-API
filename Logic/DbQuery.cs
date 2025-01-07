@@ -593,7 +593,7 @@ namespace ResiGrass_API.Logic
                     conn.Open();
                     string query;
 
-                    if (clientId == 0 || idLocality == 0)
+                    if (clientId == 0 && idLocality == 0)
                     {
                         query = @"
                 SELECT h.id, h.""nameHeadquarter"", h.""numberPhone"", h.""address"", 
@@ -601,7 +601,8 @@ namespace ResiGrass_API.Logic
                        h.""email"", h.""signature_image"" 
                 FROM ""headquarter"" h
                 INNER JOIN ""client"" c ON h.""clientId"" = c.id
-                INNER JOIN ""locality"" l ON h.""localityId"" = l.id;";
+                INNER JOIN ""locality"" l ON h.""localityId"" = l.id
+                ORDER BY ""nameHeadquarter"";";
                     }
                     else
                     {
@@ -612,7 +613,8 @@ namespace ResiGrass_API.Logic
                 FROM ""headquarter"" h
                 INNER JOIN ""client"" c ON h.""clientId"" = c.id
                 INNER JOIN ""locality"" l ON h.""localityId"" = l.id
-                WHERE h.""clientId"" = @clientId AND h.""localityId"" = @localityId;";
+                WHERE h.""clientId"" = @clientId
+                ORDER BY ""nameHeadquarter"";";
                     }
 
                     using (var cmd = new NpgsqlCommand(query, conn))
@@ -621,6 +623,10 @@ namespace ResiGrass_API.Logic
                         {
                             cmd.Parameters.AddWithValue("@clientId", clientId);
                             cmd.Parameters.AddWithValue("@localityId", idLocality);
+                        }
+                        else 
+                        {
+                            cmd.Parameters.AddWithValue("@clientId", clientId);
                         }
 
                         using (var reader = cmd.ExecuteReader())
@@ -1654,15 +1660,19 @@ namespace ResiGrass_API.Logic
                     conn.Open();
 
                     string query = @"
-            SELECT 
-                DATE_TRUNC('week', c.""receivedDate"") AS WeekStart,
-                COALESCE(SUM(c.""netWeight""), 0) AS TotalOil
-            FROM collection c
-            INNER JOIN headquarter h ON c.""headquarterId"" = h.""id""
-            WHERE DATE(c.""receivedDate"") BETWEEN DATE(@startDate) AND DATE(@endDate)
-            AND h.""is_certified"" = B'1'
-            GROUP BY WeekStart
-            ORDER BY WeekStart;";
+                                SELECT 
+                                    DATE_TRUNC('week', c.""receivedDate"") AS WeekStart,
+                                    COALESCE(SUM(c.""netWeight""), 0) AS TotalOil,
+                                    (SELECT COALESCE(SUM(c2.""netWeight""), 0) FROM collection c2
+                                     INNER JOIN headquarter h2 ON c2.""headquarterId"" = h2.""id""
+                                     WHERE h2.""is_certified"" = B'1') AS TotalOilAllWeeks
+                                FROM collection c
+                                INNER JOIN headquarter h ON c.""headquarterId"" = h.""id""
+                                WHERE DATE(c.""receivedDate"") BETWEEN DATE(@startDate) AND DATE(@endDate)
+                                AND h.""is_certified"" = B'1'
+                                GROUP BY WeekStart
+                                ORDER BY WeekStart;
+                                ;";
 
                     using (var cmd = new NpgsqlCommand(query, conn))
                     {
@@ -1675,12 +1685,14 @@ namespace ResiGrass_API.Logic
                             {
                                 var weekStart = reader.GetDateTime(reader.GetOrdinal("WeekStart"));
                                 var totalOil = reader.GetDouble(reader.GetOrdinal("TotalOil"));
+                                var totalOilAllWeeks = reader.GetDouble(reader.GetOrdinal("TotalOilAllWeeks"));
 
                                 weeklyOilData.Add(new WeeklyOilData
                                 {
                                     WeekStart = weekStart,
                                     WeekEnd = weekStart.AddDays(6), // El fin de la semana es 6 días después
-                                    TotalOil = totalOil
+                                    TotalOil = totalOil,
+                                    TotalOilAllWeeks = totalOilAllWeeks
                                 });
                             }
                         }
@@ -1747,7 +1759,8 @@ namespace ResiGrass_API.Logic
 
                     string query = @"
                                     SELECT id, ""nameCollector"", ""numberPhoneCollector"", ""dateCreationCollector"", status, ""loginCollectorId"", ""typeCollectorId"", profile_image
-	                                    FROM resigrass.collector;";
+	                                FROM resigrass.collector
+                                    ORDER BY id asc;";
 
                     using (var cmd = new NpgsqlCommand(query, conn))
                     {
