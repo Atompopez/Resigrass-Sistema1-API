@@ -1665,14 +1665,15 @@ namespace ResiGrass_API.Logic
                                     COALESCE(SUM(c.""netWeight""), 0) AS TotalOil,
                                     (SELECT COALESCE(SUM(c2.""netWeight""), 0) FROM collection c2
                                      INNER JOIN headquarter h2 ON c2.""headquarterId"" = h2.""id""
-                                     WHERE h2.""is_certified"" = B'1') AS TotalOilAllWeeks
+                                     WHERE h2.""is_certified"" = B'1'
+	                                 AND DATE(c2.""receivedDate"") BETWEEN DATE(@startDate) AND DATE(@endDate'))
+	                                 AS TotalOilAllWeeks
                                 FROM collection c
                                 INNER JOIN headquarter h ON c.""headquarterId"" = h.""id""
-                                WHERE DATE(c.""receivedDate"") BETWEEN DATE(@startDate) AND DATE(@endDate)
+                                AND DATE(c.""receivedDate"") BETWEEN DATE(@startDate) AND DATE(@endDate)
                                 AND h.""is_certified"" = B'1'
                                 GROUP BY WeekStart
-                                ORDER BY WeekStart;
-                                ;";
+                                ORDER BY WeekStart;";
 
                     using (var cmd = new NpgsqlCommand(query, conn))
                     {
