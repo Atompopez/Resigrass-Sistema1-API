@@ -11,6 +11,8 @@ ResiGrass_API.Logic.Globals.Initialize(builder.Configuration);
 
 // Agrega la lógica de base de datos
 builder.Services.AddSingleton<DbQuery>(new DbQuery(ResiGrass_API.Logic.Globals.ConnectionString));
+builder.Services.AddHostedService<SendTokenUser>();
+builder.Services.AddHostedService<EmailNotificationService>();
 
 // Habilita CORS
 builder.Services.AddCors(options =>

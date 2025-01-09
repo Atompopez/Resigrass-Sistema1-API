@@ -1484,6 +1484,7 @@ namespace ResiGrass_API.Logic
             {
                 using (var conn = new NpgsqlConnection(_connectionString))
                 {
+                    CollectionModel.endDate = CollectionModel.receivedDate.AddMonths(1);
                     conn.Open();
 
                     string query = @"
@@ -1500,7 +1501,7 @@ namespace ResiGrass_API.Logic
                     using (var cmd = new NpgsqlCommand(query, conn))
                     {
                         cmd.Parameters.AddWithValue("@receivedDate", CollectionModel.receivedDate);
-                        cmd.Parameters.AddWithValue("@endDate", DateTime.Now);
+                        cmd.Parameters.AddWithValue("@endDate", CollectionModel.endDate);
                         cmd.Parameters.AddWithValue("@fullPayment", CollectionModel.fullPayment);
                         cmd.Parameters.AddWithValue("@priceUnit", CollectionModel.priceUnit);
                         cmd.Parameters.AddWithValue("@netWeight", CollectionModel.netWeight);
@@ -1626,7 +1627,7 @@ namespace ResiGrass_API.Logic
                                                        : reader.GetString(reader.GetOrdinal("TipoDeNegocio")),
                                     SignatureImage = reader.IsDBNull(reader.GetOrdinal("Firma"))
                                                      ? null
-                                                     : reader.GetString(reader.GetOrdinal("Firma"))
+                                                     : Convert.ToBase64String((byte[])reader["Firma"])
                                 };
 
                                 collections.Add(collection);
@@ -1810,13 +1811,15 @@ namespace ResiGrass_API.Logic
                     using (var transaction = conn.BeginTransaction())
                     {
                         string query = @"
-                SELECT c.""id"", c.""receivedDate"", c.""endDate"", c.""fullPayment"", c.""priceUnit"", c.""netWeight"", 
-                       c.""observations"", c.""receivedFull"", c.""bowlEmpty"", c.""collectorId"", 
-                       c.""headquarterId"", c.""measureId"", c.""methodPaymentId"", c.""productId"", 
-                       h.email
-                FROM collection c
-                INNER JOIN headquarter h ON c.""headquarterId"" = h.id
-                WHERE c.""endDate"" <= NOW() + INTERVAL '2 days' AND c.""is_sent"" = B'0';";
+                            SELECT c.""serial_number"", c.""receivedDate"", c.""endDate"", c.""fullPayment"", c.""priceUnit"", c.""netWeight"", 
+                                   c.""observations"", c.""receivedFull"", c.""bowlEmpty"", c.""collectorId"", 
+                                   c.""headquarterId"", c.""measureId"", c.""methodPaymentId"", c.""productId"", 
+                                   h.email, cl.""nameClient"", lo.""nameLocality"", h.""numberPhone""
+                            FROM collection c
+                            INNER JOIN headquarter h ON c.""headquarterId"" = h.id
+                            INNER JOIN client cl ON cl.id = h.""clientId""
+                            INNER JOIN locality lo ON lo.id = h.""localityId""
+                            WHERE c.""receivedDate""::date = (NOW() - INTERVAL '2 days')::date AND c.""is_sent"" = B'0';";
 
                         using (var cmd = new NpgsqlCommand(query, conn, transaction))
                         {
@@ -1826,7 +1829,7 @@ namespace ResiGrass_API.Logic
                                 {
                                     var record = new RecolectionModel
                                     {
-                                        id = reader.GetInt32(0),
+                                        serial_number = reader.GetString(0),
                                         receivedDate = reader.GetDateTime(1),
                                         endDate = reader.GetDateTime(2),
                                         fullPayment = reader.GetFloat(3),
@@ -1840,7 +1843,10 @@ namespace ResiGrass_API.Logic
                                         measureId = reader.GetInt32(11),
                                         methodPaymentId = reader.GetInt32(12),
                                         productId = reader.GetInt32(13),
-                                        email = reader.IsDBNull(14) ? null : reader.GetString(14)
+                                        email = reader.IsDBNull(14) ? null : reader.GetString(14),
+                                        nameClient = reader.GetString(15),
+                                        nameLocality = reader.GetString(16),
+                                        numberPhone = reader.GetString(17)
                                     };
 
                                     records.Add(record);
@@ -1901,12 +1907,15 @@ namespace ResiGrass_API.Logic
                     h.""nameHeadquarter"", -- Nombre de la sede
                     cl.""nitCc"",
                     cl.""nameClient"",
-                    c.""serial_number""
+                    c.""serial_number"",
+                    lo.""nameLocality"",
+                    h.signature_image
                 FROM collection c
                 INNER JOIN headquarter h ON c.""headquarterId"" = h.""id""
                 INNER JOIN client cl ON h.""clientId"" = cl.""id""
                 INNER JOIN ""typeBusiness"" tb ON cl.""typeBusinessId"" = tb.""id""
                 INNER JOIN collector col ON c.""collectorId"" = col.""id""
+                INNER JOIN locality lo ON lo.id = h.""localityId""
                 WHERE c.""id"" = @id";
 
                     using (var cmd = new NpgsqlCommand(query, conn))
@@ -1917,9 +1926,15 @@ namespace ResiGrass_API.Logic
                         {
                             if (reader.Read())
                             {
+                                byte[] signatureImageBytes = null;
+                                if (!reader.IsDBNull(reader.GetOrdinal("signature_image")))
+                                {
+                                    signatureImageBytes = new byte[reader.GetBytes(reader.GetOrdinal("signature_image"), 0, null, 0, int.MaxValue)];
+                                    reader.GetBytes(reader.GetOrdinal("signature_image"), 0, signatureImageBytes, 0, signatureImageBytes.Length);
+                                }
+
                                 return new RecolectionModel
                                 {
-                                    id = reader.GetInt32(reader.GetOrdinal("id")),
                                     receivedDate = reader.GetDateTime(reader.GetOrdinal("receivedDate")),
                                     endDate = reader.GetDateTime(reader.GetOrdinal("endDate")),
                                     fullPayment = reader.GetFloat(reader.GetOrdinal("fullPayment")),
@@ -1940,10 +1955,11 @@ namespace ResiGrass_API.Logic
                                     numberPhone = reader.GetString(reader.GetOrdinal("HeadquarterPhone")),
                                     businessTypeId = reader.GetInt32(reader.GetOrdinal("typeBusinessId")),
                                     businessType = reader.GetString(reader.GetOrdinal("BusinessType")), // Tipo de negocio
-                                    nameHeadquarter = reader.GetString(reader.GetOrdinal("nameHeadquarter")), // Nombre de la sede
+                                    nameClient = reader.GetString(reader.GetOrdinal("nameHeadquarter")), // Nombre de la sede
                                     nitCc = reader.GetString(reader.GetOrdinal("nitCc")), // NIT del cliente
-                                    nameClient = reader.GetString(reader.GetOrdinal("nameClient")),
-                                    seria_number = reader.GetString(reader.GetOrdinal("serial_number"))
+                                    serial_number = reader.GetString(reader.GetOrdinal("serial_number")),
+                                    nameLocality = reader.GetString(reader.GetOrdinal("nameLocality")),
+                                    signature_image = signatureImageBytes
                                 };
                             }
                         }
@@ -2240,6 +2256,77 @@ namespace ResiGrass_API.Logic
             catch (Exception ex)
             {
                 return new DataCollector();
+            }
+        }
+        #endregion
+
+        #region UpdateTokenUser
+        public async Task<bool> UpdateTokenUser(int idUser, string token)
+        {
+            try
+            {
+                using (var conn = new NpgsqlConnection(_connectionString))
+                {
+                    conn.Open();
+
+                    string query = @"UPDATE pin_collector
+                                        SET pin = @token, 
+                                            date = CURRENT_DATE
+                                        WHERE id_collector = @idUser;";
+
+                    using (var cmd = new NpgsqlCommand(query, conn))
+                    {
+
+                        cmd.Parameters.AddWithValue("@token", int.Parse(token));
+                        cmd.Parameters.AddWithValue("@idUser", idUser);
+
+                        int rowsAffected = cmd.ExecuteNonQuery();
+                        return rowsAffected > 0;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al actualizar la recolección: {ex.Message}");
+                return false;
+            }
+        }
+        #endregion
+
+        #region GetUsersToSendToken
+        public async Task<List<DataUpdateToken>> GetUsersToSendToken()
+        {
+            List<DataUpdateToken> users = new List<DataUpdateToken>();
+            try
+            {
+                using (var conn = new NpgsqlConnection(_connectionString))
+                {
+                    conn.Open();
+                    string queryCheckUser = @"SELECT c.id, CAST(p.pin AS TEXT) AS token, c.email
+                                                FROM pin_collector p
+                                                INNER JOIN collector c ON p.id_collector = c.id";
+
+                    using (var cmdCheckUser = new NpgsqlCommand(queryCheckUser, conn))
+                    {
+                        using (var reader = cmdCheckUser.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                users.Add(new DataUpdateToken
+                                {
+                                    id = reader.GetInt32(0),
+                                    token = reader.GetString(1),
+                                    email = reader.GetString(2)
+                                });
+                            }
+                        }
+                    }
+                }
+                return users;
+            }
+            catch
+            {
+                return users;
             }
         }
         #endregion

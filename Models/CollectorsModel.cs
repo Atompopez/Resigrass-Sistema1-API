@@ -76,4 +76,11 @@
         public string numberPhoneCollector { get; set; }
         public string dateCreationCollector { get; set; }
     }
+
+    public class DataUpdateToken
+    {
+        public int id { get; set; }
+        public string? token { get; set; }
+        public string? email { get; set; }
+    }
 }

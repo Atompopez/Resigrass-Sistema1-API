@@ -3,8 +3,17 @@ using ResiGrass_API.Models;
 using System.Net.Mail;
 using System.Net;
 using System.Text;
+using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
+using DocumentFormat.OpenXml.Drawing;
+using A = DocumentFormat.OpenXml.Drawing;
+using DW = DocumentFormat.OpenXml.Drawing.Wordprocessing;
+using PIC = DocumentFormat.OpenXml.Drawing.Pictures;
+using WordprocessingParagraph = DocumentFormat.OpenXml.Wordprocessing.Paragraph;
+using WordprocessingRun = DocumentFormat.OpenXml.Wordprocessing.Run;
+using WordprocessingText = DocumentFormat.OpenXml.Wordprocessing.Text;
+
 
 namespace ResiGrass_API.Logic
 {
@@ -70,7 +79,7 @@ namespace ResiGrass_API.Logic
                     var mailMessage = new MailMessage
                     {
                         From = new MailAddress("resigrass0@gmail.com"),
-                        Subject = "Notificación de registros a dos días",
+                        Subject = "Notificación de nuevo certificado de recolección",
                         Body = emailBody,
                         IsBodyHtml = true,
                     };
@@ -79,6 +88,9 @@ namespace ResiGrass_API.Logic
                     mailMessage.To.Add(record.email);
 
                     string filePath = GenerateWordDocument(record);
+                    if(record.signature_image != null)
+                        AddFloatingImageFromBytes(filePath, record.signature_image);
+
                     if (filePath != null)
                     {
                         Attachment attachment = new Attachment(filePath);
@@ -99,12 +111,89 @@ namespace ResiGrass_API.Logic
         }
         #endregion
 
+
+
+        public void AddFloatingImageFromBytes(string filePath, byte[] imageBytes)
+        {
+            using (WordprocessingDocument wordDoc = WordprocessingDocument.Open(filePath, true))
+            {
+                MainDocumentPart mainPart = wordDoc.MainDocumentPart;
+
+                // Agregar la imagen como ImagePart a partir de los bytes
+                ImagePart imagePart = mainPart.AddImagePart(ImagePartType.Jpeg);
+
+                using (MemoryStream stream = new MemoryStream(imageBytes))
+                {
+                    imagePart.FeedData(stream);  // Alimentar la imagen desde el MemoryStream
+                }
+
+                string imageId = mainPart.GetIdOfPart(imagePart);
+
+                // Crear el elemento Drawing para la imagen flotante
+                Drawing element = new Drawing(
+                    new DW.Inline(
+                        new DW.Extent() { Cx = 950000L, Cy = 780000L }, // Tamaño de la imagen en EMU
+                        new DW.EffectExtent()
+                        {
+                            LeftEdge = 100L,  // Mover 100 EMUs hacia la derecha
+                            TopEdge = 200L,   // Mover 200 EMUs hacia abajo
+                            RightEdge = 0L,   // No usar desplazamiento desde el borde derecho
+                            BottomEdge = 0L
+                        },
+                        new DW.DocProperties()
+                        {
+                            Id = (UInt32Value)1U,
+                            Name = "Picture 1"
+                        },
+                        new DW.NonVisualGraphicFrameDrawingProperties(
+                            new A.GraphicFrameLocks() { NoChangeAspect = true }),
+                        new A.Graphic(
+                            new A.GraphicData(
+                                new PIC.Picture(
+                                    new PIC.NonVisualPictureProperties(
+                                        new PIC.NonVisualDrawingProperties()
+                                        {
+                                            Id = (UInt32Value)0U,
+                                            Name = "Embedded Image"
+                                        },
+                                        new PIC.NonVisualPictureDrawingProperties()),
+                                    new PIC.BlipFill(
+                                        new A.Blip()
+                                        {
+                                            Embed = imageId
+                                        },
+                                        new A.Stretch(new A.FillRectangle())),
+                                    new PIC.ShapeProperties(
+                                        new A.Transform2D(
+                                            new A.Offset() { X = 0L, Y = 0 },
+                                            new A.Extents() { Cx = 950000L, Cy = 780000L }),
+                                        new A.PresetGeometry(new A.AdjustValueList())
+                                        { Preset = A.ShapeTypeValues.Rectangle }))))
+                    )
+                    {
+                        DistanceFromTop = 0U,
+                        DistanceFromBottom = 0U,
+                        DistanceFromLeft = 0U,
+                        DistanceFromRight = 0U
+                    });
+
+                // Insertar la imagen en el documento
+                WordprocessingParagraph para = new WordprocessingParagraph(new WordprocessingRun(element));
+                Body body = mainPart.Document.Body;
+                body.AppendChild(para);
+
+                mainPart.Document.Save();
+            }
+        }
+
+
+
         #region GenerateWordDocument
         private string GenerateWordDocument(RecolectionModel record)
         {
             try
             {
-                string templatePath = @"./Util/WordTemplate.docx";
+                string templatePath = @"./Util/plantilla_certificado.docx";
                 string outputPath = $@"./Util/Certificado_{record.id}.docx";
                 File.Copy(templatePath, outputPath, true);
 
@@ -114,22 +203,15 @@ namespace ResiGrass_API.Logic
                 {
                     var body = wordDoc.MainDocumentPart.Document.Body;
 
-                    ReplaceTextInDocument(body, "Nombre_Generador", record.nameClient ?? "No disponible");
-                    ReplaceTextInDocument(body, "Punto_Venta", record.nameHeadquarter ?? "No disponible");
-                    ReplaceTextInDocument(body, "Nitt", record.nitCc ?? "No disponible");
-                    ReplaceTextInDocument(body, "Direccionn", record.address + ',' + record.nameHeadquarter ?? "No disponible");
-                    ReplaceTextInDocument(body, "Telefonoo", record.numberPhone ?? "No disponible");
-                    ReplaceTextInDocument(body, "Tipo_Negocio", record.businessType ?? "No disponible");
-                    ReplaceTextInDocument(body, "KG_Recibido", record.netWeight.ToString());
-                    ReplaceTextInDocument(body, "Fecha_Recoleccion", record.receivedDate.ToShortDateString());
-                    ReplaceTextInDocument(body, "Fecha_Hoy_Cliente", record.receivedDate.ToShortDateString());
-
-                    // Calcula la fecha límite como 30 días después de la fecha de recolección
-                    DateTime fechaLimiteCliente = record.receivedDate.AddDays(30);
-                    ReplaceTextInDocument(body, "Fecha_Limite_Cliente", fechaLimiteCliente.ToShortDateString());
-
-                    // Sustituye Fecha_Hoy por el número de serie
-                    ReplaceTextInDocument(body, "Fecha_Hoy", record.seria_number ?? "No disponible");
+                    ReplaceTextInDocument(body, "serie_recoleccion", record.serial_number ?? "No disponible");
+                    ReplaceTextInDocument(body, "name", record.nameClient ?? "No disponible");
+                    ReplaceTextInDocument(body, "nit", record.nitCc ?? "No disponible");
+                    ReplaceTextInDocument(body, "address", record.address ?? "No disponible");
+                    ReplaceTextInDocument(body, "locality", record.nameLocality ?? "No disponible");
+                    ReplaceTextInDocument(body, "phone", record.numberPhone ?? "No disponible");
+                    ReplaceTextInDocument(body, "weigth", record.netWeight.ToString());
+                    ReplaceTextInDocument(body, "date", record.receivedDate.ToShortDateString());
+                    ReplaceTextInDocument(body, "finish", record.endDate.ToShortDateString());
 
                     wordDoc.MainDocumentPart.Document.Save();
                 }
@@ -149,7 +231,7 @@ namespace ResiGrass_API.Logic
         {
             try
             {
-                foreach (var text in body.Descendants<Text>())
+                foreach (var text in body.Descendants<WordprocessingText>())
                 {
                     if (text.Text.Contains(placeholder))
                     {
@@ -171,14 +253,13 @@ namespace ResiGrass_API.Logic
             try
             {
                 var sb = new StringBuilder();
-                sb.Append("<h1>RESIGRASS</h1>");
-                sb.Append("<p>Estimado cliente,</p>");
-                sb.Append("<p>Le notificamos que en dos días se cumplirá la fecha para la recolección del aceite.</p>");
-                sb.Append("<ul>");
-                sb.AppendFormat("<li>Kilogramos recibidos: {0}</li>", record.netWeight);
-                sb.AppendFormat("<li>Date de recolección: {0}</li>", record.receivedDate.ToShortDateString());
-                sb.Append("</ul>");
-                sb.Append("<p>Gracias por su atención.</p>");
+                sb.AppendLine("<h1>RESIGRASS</h1>");
+                sb.AppendLine("<p>Estimado cliente,</p>");
+                sb.AppendLine($"<p>Este es su certificado de la recolección número <strong>{record.serial_number}</strong>, realizada el día <strong>{record.receivedDate.ToShortDateString()}</strong>.</p>");
+                sb.AppendLine("<ul>");
+                sb.AppendLine($"<li>Kilogramos recibidos: {record.netWeight}</li>");
+                sb.AppendLine("</ul>");
+                sb.AppendLine("<p>Gracias por confiar en nuestros servicios.</p>");
 
                 return sb.ToString();
             }

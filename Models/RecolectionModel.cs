@@ -35,8 +35,9 @@ namespace ResiGrass_API.Models
         public string nameHeadquarter { get; set; } // Nombre de la sede
         public string nitCc { get; set; }
         public string nameClient { get; set; }
-        public string seria_number { get; set; }// NIT del cliente
-
+        public string serial_number { get; set; }// NIT del cliente
+        public string? nameLocality { get; set; } 
+        public byte[]? signature_image { get; set; }
 
 
     }
