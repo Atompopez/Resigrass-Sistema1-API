@@ -13,6 +13,7 @@ using PIC = DocumentFormat.OpenXml.Drawing.Pictures;
 using WordprocessingParagraph = DocumentFormat.OpenXml.Wordprocessing.Paragraph;
 using WordprocessingRun = DocumentFormat.OpenXml.Wordprocessing.Run;
 using WordprocessingText = DocumentFormat.OpenXml.Wordprocessing.Text;
+using DocumentFormat.OpenXml.Drawing.Wordprocessing;
 
 
 namespace ResiGrass_API.Logic
@@ -63,6 +64,7 @@ namespace ResiGrass_API.Logic
         #region SendEmailAsync
         public async Task SendEmailAsync(List<RecolectionModel> records)
         {
+            string filePath = string.Empty;
             try
             {
                 var smtpClient = new SmtpClient("smtp.gmail.com")
@@ -87,7 +89,7 @@ namespace ResiGrass_API.Logic
                   //  record.email = "davidsant2188@gmail.com"; //SOLO PARA PRUEBAS
                     mailMessage.To.Add(record.email);
 
-                    string filePath = GenerateWordDocument(record);
+                    filePath = GenerateWordDocument(record);
                     if(record.signature_image != null)
                         AddFloatingImageFromBytes(filePath, record.signature_image);
 
@@ -108,10 +110,33 @@ namespace ResiGrass_API.Logic
             {
                 _logger.LogError($"Error al enviar el correo: {ex.Message}");
             }
+            finally
+            {
+                DeleteFile(filePath);
+            }
         }
         #endregion
 
-
+        public void DeleteFile(string filePath)
+        {
+            try
+            {
+                // Verificar si el archivo existe antes de intentar borrarlo
+                if (File.Exists(filePath))
+                {
+                    File.Delete(filePath); // Elimina el archivo
+                    Console.WriteLine($"Archivo {filePath} eliminado con éxito.");
+                }
+                else
+                {
+                    Console.WriteLine($"El archivo {filePath} no existe.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al intentar eliminar el archivo: {ex.Message}");
+            }
+        }
 
         public void AddFloatingImageFromBytes(string filePath, byte[] imageBytes)
         {
@@ -131,19 +156,26 @@ namespace ResiGrass_API.Logic
 
                 // Crear el elemento Drawing para la imagen flotante
                 Drawing element = new Drawing(
-                    new DW.Inline(
-                        new DW.Extent() { Cx = 950000L, Cy = 780000L }, // Tamaño de la imagen en EMU
+                    new DW.Anchor(
+                        new DW.HorizontalPosition(
+                            new DW.HorizontalAlignment("right"))
+                        { RelativeFrom = DW.HorizontalRelativePositionValues.RightMargin },
+                        new DW.VerticalPosition(
+                            new DW.VerticalAlignment("bottom"))
+                        { RelativeFrom = DW.VerticalRelativePositionValues.BottomMargin },
+                        new DW.Extent() { Cx = 2400000L, Cy = 2400000L }, // Tamaño de la imagen en EMU
                         new DW.EffectExtent()
                         {
-                            LeftEdge = 100L,  // Mover 100 EMUs hacia la derecha
-                            TopEdge = 200L,   // Mover 200 EMUs hacia abajo
-                            RightEdge = 0L,   // No usar desplazamiento desde el borde derecho
+                            LeftEdge = 0L,
+                            TopEdge = 0L,
+                            RightEdge = 0L,
                             BottomEdge = 0L
                         },
+                        new DW.WrapNone(), // Configura que no haya ajuste de texto
                         new DW.DocProperties()
                         {
                             Id = (UInt32Value)1U,
-                            Name = "Picture 1"
+                            Name = "FloatingImage"
                         },
                         new DW.NonVisualGraphicFrameDrawingProperties(
                             new A.GraphicFrameLocks() { NoChangeAspect = true }),
@@ -154,27 +186,29 @@ namespace ResiGrass_API.Logic
                                         new PIC.NonVisualDrawingProperties()
                                         {
                                             Id = (UInt32Value)0U,
-                                            Name = "Embedded Image"
+                                            Name = "Image"
                                         },
                                         new PIC.NonVisualPictureDrawingProperties()),
                                     new PIC.BlipFill(
                                         new A.Blip()
                                         {
-                                            Embed = imageId
+                                            Embed = imageId,
+                                            CompressionState = A.BlipCompressionValues.Print
                                         },
                                         new A.Stretch(new A.FillRectangle())),
                                     new PIC.ShapeProperties(
                                         new A.Transform2D(
-                                            new A.Offset() { X = 0L, Y = 0 },
-                                            new A.Extents() { Cx = 950000L, Cy = 780000L }),
+                                            new A.Offset() { X = 0L, Y = 0L },
+                                            new A.Extents() { Cx = 990000L, Cy = 792000L }),
                                         new A.PresetGeometry(new A.AdjustValueList())
                                         { Preset = A.ShapeTypeValues.Rectangle }))))
-                    )
+                        )
                     {
-                        DistanceFromTop = 0U,
-                        DistanceFromBottom = 0U,
-                        DistanceFromLeft = 0U,
-                        DistanceFromRight = 0U
+                        SimplePos = false,
+                        BehindDoc = true, // Colocar detrás del texto
+                        Locked = false,
+                        LayoutInCell = true,
+                        AllowOverlap = true // Permitir superposición con el texto
                     });
 
                 // Insertar la imagen en el documento
@@ -194,11 +228,13 @@ namespace ResiGrass_API.Logic
             try
             {
                 string templatePath = @"./Util/plantilla_certificado.docx";
-                string outputPath = $@"./Util/Certificado_{record.id}.docx";
+                string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss_fff");
+                string outputPath = $@"./Util/Certificado_{timestamp}.docx";
+
+                // Copiar el archivo de plantilla al destino
                 File.Copy(templatePath, outputPath, true);
 
-               
-
+                // Abrir el archivo para manipulación
                 using (WordprocessingDocument wordDoc = WordprocessingDocument.Open(outputPath, true))
                 {
                     var body = wordDoc.MainDocumentPart.Document.Body;
@@ -213,9 +249,11 @@ namespace ResiGrass_API.Logic
                     ReplaceTextInDocument(body, "date", record.receivedDate.ToShortDateString());
                     ReplaceTextInDocument(body, "finish", record.endDate.ToShortDateString());
 
+                    // Guardar los cambios en el documento
                     wordDoc.MainDocumentPart.Document.Save();
                 }
 
+                // El archivo se cierra automáticamente al salir del bloque using
                 return outputPath;
             }
             catch (Exception ex)
