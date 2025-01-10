@@ -15,9 +15,14 @@ RUN dotnet publish -c Release -o out
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
 
-# Instalar las dependencias necesarias para GDI+ en Linux
+# Instalar las dependencias necesarias para GDI+ y SkiaSharp en Linux
 RUN apt-get update && apt-get install -y \
     libgdiplus \
+    libfontconfig1 \
+    libfreetype6 \
+    libx11-6 \
+    libxext6 \
+    libskia \
     && rm -rf /var/lib/apt/lists/*
 
 # Copiar el archivo plantilla_certificado.docx al contenedor
