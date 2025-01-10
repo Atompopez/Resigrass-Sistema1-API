@@ -15,17 +15,9 @@ RUN dotnet publish -c Release -o out
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
 
-# Instalar las dependencias necesarias para GDI+ y SkiaSharp en Linux
-RUN apt-get update && apt-get install -y \
-    libgdiplus \
-    libfontconfig1 \
-    libfreetype6 \
-    libx11-6 \
-    libxext6 \
-    libskia \
-    libicu-dev \
-    libpixman-1-0 \
-    && rm -rf /var/lib/apt/lists/*
+# Eliminar las dependencias de SkiaSharp y GDI+
+# Ya no es necesario instalar libskia, libgdiplus u otras bibliotecas nativas.
+# No se requiere instalación de dependencias gráficas adicionales.
 
 # Copiar el archivo plantilla_certificado.docx al contenedor
 COPY ./Util/plantilla_certificado.docx /app/Util/plantilla_certificado.docx

@@ -18,6 +18,8 @@ using System.Drawing.Imaging;
 using System.Drawing;
 using System.IO;
 using SkiaSharp;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 
 
 namespace ResiGrass_API.Logic
@@ -231,32 +233,31 @@ namespace ResiGrass_API.Logic
         {
             using (var ms = new MemoryStream(imagenBytes))
             {
-                // Cargar la imagen en un objeto SKBitmap
-                var bitmap = SKBitmap.Decode(ms);
-
-                // Definir el color blanco (que se eliminará)
-                var blanco = new SKColor(255, 255, 255);
-
-                // Recorrer todos los píxeles y hacer transparentes los píxeles blancos
-                for (int y = 0; y < bitmap.Height; y++)
+                // Cargar la imagen
+                using (var image = SixLabors.ImageSharp.Image.Load<Rgba32>(ms))
                 {
-                    for (int x = 0; x < bitmap.Width; x++)
+                    // Definir el color blanco (que se eliminará)
+                    var blanco = new Rgba32(255, 255, 255);
+
+                    // Recorrer todos los píxeles y hacer transparentes los píxeles blancos
+                    for (int y = 0; y < image.Height; y++)
                     {
-                        var color = bitmap.GetPixel(x, y);
-                        if (color.Equals(blanco))
+                        for (int x = 0; x < image.Width; x++)
                         {
-                            bitmap.SetPixel(x, y, new SKColor(0, 0, 0, 0)); // Hacerlo transparente
+                            var color = image[x, y];
+                            if (color.Equals(blanco))
+                            {
+                                image[x, y] = new Rgba32(0, 0, 0, 0); // Hacerlo transparente
+                            }
                         }
                     }
-                }
 
-                // Guardar la imagen modificada en un MemoryStream
-                using (var msSalida = new MemoryStream())
-                {
-                    var image = SKImage.FromBitmap(bitmap);
-                    var data = image.Encode(SKEncodedImageFormat.Png, 100);
-                    msSalida.Write(data.ToArray(), 0, data.ToArray().Length);
-                    return msSalida.ToArray();
+                    // Guardar la imagen modificada en un MemoryStream
+                    using (var msSalida = new MemoryStream())
+                    {
+                        image.SaveAsPng(msSalida); // Guardar en formato PNG
+                        return msSalida.ToArray();
+                    }
                 }
             }
         }
