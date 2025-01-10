@@ -98,12 +98,10 @@ namespace ResiGrass_API.Logic
 
                     if (filePath != null)
                     {
-                        // Añadir el archivo adjunto
                         using (var attachment = new Attachment(filePath))
                         {
                             mailMessage.Attachments.Add(attachment);
                             await smtpClient.SendMailAsync(mailMessage);
-                            return;
                         }
                     }
                     else
@@ -118,46 +116,10 @@ namespace ResiGrass_API.Logic
             }
             finally
             {
-                bool fileDeleted = false;
-                int attemptCount = 0;
                 DeleteFile(filePath);
-                while (!fileDeleted && attemptCount < 5)  // Intentamos 5 veces
-                {
-                    try
-                    {
-                        if (!IsFileLocked(filePath)) // Verificar si el archivo está bloqueado
-                        {
-                            DeleteFile(filePath);  // Si no está bloqueado, lo eliminamos
-                            fileDeleted = true;
-                        }
-                    }
-                    catch (IOException)
-                    {
-                        _logger.LogWarning($"El archivo {filePath} está bloqueado. Intentando nuevamente.");
-                    }
-
-                    await Task.Delay(1000);  // Esperamos 1 segundo antes de intentar de nuevo
-                    attemptCount++;
-                }
             }
         }
         #endregion
-
-        public bool IsFileLocked(string filePath)
-        {
-            try
-            {
-                using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
-                {
-                    return false;
-                }
-            }
-            catch (IOException)
-            {
-                return true;
-            }
-        }
-
 
         public void DeleteFile(string filePath)
         {
@@ -184,93 +146,83 @@ namespace ResiGrass_API.Logic
         {
             imageBytes = QuitarFondoBlanco(imageBytes);
 
-            try
+            using (WordprocessingDocument wordDoc = WordprocessingDocument.Open(filePath, true))
             {
-                using (WordprocessingDocument wordDoc = WordprocessingDocument.Open(filePath, true))
+                MainDocumentPart mainPart = wordDoc.MainDocumentPart;
+
+                // Agregar la imagen como ImagePart a partir de los bytes
+                ImagePart imagePart = mainPart.AddImagePart(ImagePartType.Jpeg);
+
+                using (MemoryStream stream = new MemoryStream(imageBytes))
                 {
-                    MainDocumentPart mainPart = wordDoc.MainDocumentPart;
-
-                    // Agregar la imagen como ImagePart a partir de los bytes
-                    ImagePart imagePart = mainPart.AddImagePart(ImagePartType.Jpeg);
-
-                    using (MemoryStream stream = new MemoryStream(imageBytes))
-                    {
-                        imagePart.FeedData(stream);  // Alimentar la imagen desde el MemoryStream
-                    }
-
-                    string imageId = mainPart.GetIdOfPart(imagePart);
-
-                    // Crear el elemento Drawing para la imagen flotante
-                    Drawing element = new Drawing(
-                        new DW.Anchor(
-                            new DW.HorizontalPosition(
-                                new DW.HorizontalAlignment("right"))
-                            { RelativeFrom = DW.HorizontalRelativePositionValues.RightMargin },
-                            new DW.VerticalPosition(
-                                new DW.VerticalAlignment("bottom"))
-                            { RelativeFrom = DW.VerticalRelativePositionValues.BottomMargin },
-                            new DW.Extent() { Cx = 2600000L, Cy = 2600000L }, // Tamaño de la imagen en EMU
-                            new DW.EffectExtent()
-                            {
-                                LeftEdge = 0L,
-                                TopEdge = 0L,
-                                RightEdge = 0L,
-                                BottomEdge = 0L
-                            },
-                            new DW.WrapNone(), // Configura que no haya ajuste de texto
-                            new DW.DocProperties()
-                            {
-                                Id = (UInt32Value)1U,
-                                Name = "FloatingImage"
-                            },
-                            new DW.NonVisualGraphicFrameDrawingProperties(
-                                new A.GraphicFrameLocks() { NoChangeAspect = true }),
-                            new A.Graphic(
-                                new A.GraphicData(
-                                    new PIC.Picture(
-                                        new PIC.NonVisualPictureProperties(
-                                            new PIC.NonVisualDrawingProperties()
-                                            {
-                                                Id = (UInt32Value)0U,
-                                                Name = "Image"
-                                            },
-                                            new PIC.NonVisualPictureDrawingProperties()),
-                                        new PIC.BlipFill(
-                                            new A.Blip()
-                                            {
-                                                Embed = imageId,
-                                                CompressionState = A.BlipCompressionValues.Print
-                                            },
-                                            new A.Stretch(new A.FillRectangle()))),
-                                new PIC.ShapeProperties(
-                                    new A.Transform2D(
-                                        new A.Offset() { X = 0L, Y = 0L },
-                                        new A.Extents() { Cx = 990000L, Cy = 600000L }),
-                                    new A.PresetGeometry(new A.AdjustValueList())
-                                    { Preset = A.ShapeTypeValues.Rectangle }))))
-                        {
-                            SimplePos = false,
-                            BehindDoc = true, // Colocar detrás del texto
-                            Locked = false,
-                            LayoutInCell = true,
-                            AllowOverlap = true // Permitir superposición con el texto
-                        });
-
-                    // Insertar la imagen en el documento
-                    WordprocessingParagraph para = new WordprocessingParagraph(new WordprocessingRun(element));
-                    Body body = mainPart.Document.Body;
-                    body.AppendChild(para);
-
-                    // Asegurarse de que los cambios se guarden correctamente
-                    mainPart.Document.Save();
+                    imagePart.FeedData(stream);  // Alimentar la imagen desde el MemoryStream
                 }
 
-                // Forzar a que el archivo se libere y que los recursos de la imagen sean liberados
-                Task.Delay(500).Wait();  // Retraso para asegurar que el archivo se libere
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error al agregar la imagen flotante: {ex.Message}");
+                string imageId = mainPart.GetIdOfPart(imagePart);
+
+                // Crear el elemento Drawing para la imagen flotante
+                Drawing element = new Drawing(
+                    new DW.Anchor(
+                        new DW.HorizontalPosition(
+                            new DW.HorizontalAlignment("right"))
+                        { RelativeFrom = DW.HorizontalRelativePositionValues.RightMargin },
+                        new DW.VerticalPosition(
+                            new DW.VerticalAlignment("bottom"))
+                        { RelativeFrom = DW.VerticalRelativePositionValues.BottomMargin },
+                        new DW.Extent() { Cx = 2600000L, Cy = 2600000L }, // Tamaño de la imagen en EMU
+                        new DW.EffectExtent()
+                        {
+                            LeftEdge = 0L,
+                            TopEdge = 0L,
+                            RightEdge = 0L,
+                            BottomEdge = 0L
+                        },
+                        new DW.WrapNone(), // Configura que no haya ajuste de texto
+                        new DW.DocProperties()
+                        {
+                            Id = (UInt32Value)1U,
+                            Name = "FloatingImage"
+                        },
+                        new DW.NonVisualGraphicFrameDrawingProperties(
+                            new A.GraphicFrameLocks() { NoChangeAspect = true }),
+                        new A.Graphic(
+                            new A.GraphicData(
+                                new PIC.Picture(
+                                    new PIC.NonVisualPictureProperties(
+                                        new PIC.NonVisualDrawingProperties()
+                                        {
+                                            Id = (UInt32Value)0U,
+                                            Name = "Image"
+                                        },
+                                        new PIC.NonVisualPictureDrawingProperties()),
+                                    new PIC.BlipFill(
+                                        new A.Blip()
+                                        {
+                                            Embed = imageId,
+                                            CompressionState = A.BlipCompressionValues.Print
+                                        },
+                                        new A.Stretch(new A.FillRectangle())),
+                                    new PIC.ShapeProperties(
+                                        new A.Transform2D(
+                                            new A.Offset() { X = 0L, Y = 0L },
+                                            new A.Extents() { Cx = 990000L, Cy = 600000L }),
+                                        new A.PresetGeometry(new A.AdjustValueList())
+                                        { Preset = A.ShapeTypeValues.Rectangle }))))
+                        )
+                    {
+                        SimplePos = false,
+                        BehindDoc = true, // Colocar detrás del texto
+                        Locked = false,
+                        LayoutInCell = true,
+                        AllowOverlap = true // Permitir superposición con el texto
+                    });
+
+                // Insertar la imagen en el documento
+                WordprocessingParagraph para = new WordprocessingParagraph(new WordprocessingRun(element));
+                Body body = mainPart.Document.Body;
+                body.AppendChild(para);
+
+                mainPart.Document.Save();
             }
         }
 
@@ -321,9 +273,6 @@ namespace ResiGrass_API.Logic
                     // Guardar los cambios en el documento
                     wordDoc.MainDocumentPart.Document.Save();
                 }
-
-                // Añadir un pequeño retraso para asegurar que el archivo esté completamente liberado
-                Task.Delay(500).Wait();  // Espera de 500 ms
 
                 // El archivo se cierra automáticamente al salir del bloque using
                 return outputPath;
