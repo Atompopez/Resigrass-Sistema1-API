@@ -19,7 +19,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowResigrassAndLocalhost", policy =>
     {
-        policy.WithOrigins("http://localhost:3000", "https://www.resigrass.com.co") // Orígenes permitidos
+        policy.WithOrigins("http://localhost:3000", "https://www.resigrass.com.co", "https://api-resigrass.page.resigrass.com.co") // Orígenes permitidos
               .AllowAnyHeader()    // Permite cualquier encabezado
               .AllowAnyMethod();   // Permite cualquier método (GET, POST, etc.)
     });
