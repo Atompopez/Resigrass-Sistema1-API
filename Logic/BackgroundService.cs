@@ -17,6 +17,7 @@ using DocumentFormat.OpenXml.Drawing.Wordprocessing;
 using System.Drawing.Imaging;
 using System.Drawing;
 using System.IO;
+using SkiaSharp;
 
 
 namespace ResiGrass_API.Logic
@@ -230,14 +231,31 @@ namespace ResiGrass_API.Logic
         {
             using (var ms = new MemoryStream(imagenBytes))
             {
-                Bitmap bitmap = new Bitmap(ms);
+                // Cargar la imagen en un objeto SKBitmap
+                var bitmap = SKBitmap.Decode(ms);
 
-                System.Drawing.Color blanco = System.Drawing.Color.FromArgb(255, 255, 255);
-                bitmap.MakeTransparent(blanco);
+                // Definir el color blanco (que se eliminará)
+                var blanco = new SKColor(255, 255, 255);
 
+                // Recorrer todos los píxeles y hacer transparentes los píxeles blancos
+                for (int y = 0; y < bitmap.Height; y++)
+                {
+                    for (int x = 0; x < bitmap.Width; x++)
+                    {
+                        var color = bitmap.GetPixel(x, y);
+                        if (color.Equals(blanco))
+                        {
+                            bitmap.SetPixel(x, y, new SKColor(0, 0, 0, 0)); // Hacerlo transparente
+                        }
+                    }
+                }
+
+                // Guardar la imagen modificada en un MemoryStream
                 using (var msSalida = new MemoryStream())
                 {
-                    bitmap.Save(msSalida, ImageFormat.Png);
+                    var image = SKImage.FromBitmap(bitmap);
+                    var data = image.Encode(SKEncodedImageFormat.Png, 100);
+                    msSalida.Write(data.ToArray(), 0, data.ToArray().Length);
                     return msSalida.ToArray();
                 }
             }
