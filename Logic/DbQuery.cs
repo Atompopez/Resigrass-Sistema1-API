@@ -1211,8 +1211,8 @@ namespace ResiGrass_API.Logic
 
                
                     string queryCollector = @"
-                INSERT INTO resigrass.collector (""nameCollector"", ""numberPhoneCollector"", ""dateCreationCollector"", ""status"", ""loginCollectorId"", ""typeCollectorId"", ""profile_image"")
-                VALUES (@nameCollector, @numberPhoneCollector, @dateCreationCollector, @status, @loginCollectorId, @typeCollectorId, @profileImage)
+                INSERT INTO resigrass.collector (""nameCollector"", ""numberPhoneCollector"", ""dateCreationCollector"", ""status"", ""loginCollectorId"", ""typeCollectorId"", ""profile_image"", ""email"")
+                VALUES (@nameCollector, @numberPhoneCollector, @dateCreationCollector, @status, @loginCollectorId, @typeCollectorId, @profileImage, @email)
                 RETURNING *";
 
                     using (var cmdCollector = new NpgsqlCommand(queryCollector, conn))
@@ -1224,6 +1224,7 @@ namespace ResiGrass_API.Logic
                         cmdCollector.Parameters.AddWithValue("@status", statusBit);
                         cmdCollector.Parameters.AddWithValue("@loginCollectorId", loginCollectorId);
                         cmdCollector.Parameters.AddWithValue("@typeCollectorId", collectorModel.typeCollectorId);
+                        cmdCollector.Parameters.AddWithValue("@email", collectorModel.emailCollector);
 
                      
                         cmdCollector.Parameters.AddWithValue("@profileImage", imageData ?? (object)DBNull.Value);
@@ -1239,7 +1240,8 @@ namespace ResiGrass_API.Logic
                                     dateCreationCollector = reader.GetDateTime(3),
                                     status = reader.GetBoolean(4),
                                     loginCollectorId = reader.GetInt32(5),
-                                    typeCollectorId = reader.GetInt32(6)
+                                    typeCollectorId = reader.GetInt32(6),
+                                    emailCollector = reader.GetString(7)
                                 };
                                 collectors.Add(collector);
                             }

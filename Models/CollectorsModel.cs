@@ -34,6 +34,7 @@
 
         public required string nameCollector { get; set; }
         public required string numberPhoneCollector { get; set; }
+        public required string emailCollector { get; set; }
         public required bool status { get; set; }
         public int loginCollectorId { get; set; }
 
