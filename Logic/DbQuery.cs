@@ -756,8 +756,8 @@ namespace ResiGrass_API.Logic
                     conn.Open();
                     string query = @"
                 INSERT INTO ""headquarter"" 
-                (""nameHeadquarter"", ""numberPhone"", ""address"", ""dateCreationHeadquarter"", ""status"", ""clientId"", ""localityId"", ""signature_image"", ""nit_cc"")
-                VALUES (@nameHeadquarter, @numberPhone, @address, @dateCreationHeadquarter, @status, @clientId, @localityId, @signatureImage, @nitCc)
+                (""nameHeadquarter"", ""numberPhone"", ""address"", ""dateCreationHeadquarter"", ""status"", ""clientId"", ""localityId"", ""signature_image"", ""nit_cc"",""email"")
+                VALUES (@nameHeadquarter, @numberPhone, @address, @dateCreationHeadquarter, @status, @clientId, @localityId, @signatureImage, @nitCc, @email)
                 RETURNING id, ""nameHeadquarter"", ""numberPhone"", ""address"", 
                           ""dateCreationHeadquarter"", ""status"", ""clientId"", ""localityId"", ""signature_image"";";
 
@@ -771,6 +771,7 @@ namespace ResiGrass_API.Logic
                         cmd.Parameters.AddWithValue("@clientId", HeadQuartersModel.clientId);
                         cmd.Parameters.AddWithValue("@localityId", HeadQuartersModel.localityId);
                         cmd.Parameters.AddWithValue("@nitCc", HeadQuartersModel.nitCc);
+                        cmd .Parameters.AddWithValue("@email", HeadQuartersModel.email);
                         
                         byte[] signatureImageBytes = string.IsNullOrEmpty(HeadQuartersModel.SignatureImage)
                             ? null
