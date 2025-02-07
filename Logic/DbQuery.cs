@@ -538,7 +538,7 @@ namespace ResiGrass_API.Logic
                         cmd.Parameters.AddWithValue("@id", IdClient);
                         cmd.Parameters.AddWithValue("@nameClient", clientModel.nameClient);
                         cmd.Parameters.AddWithValue("@corporateName", clientModel.corporateName ?? (object)DBNull.Value);
-                        cmd.Parameters.AddWithValue("@dateCreationClient", DateTime.Now);
+                        cmd.Parameters.AddWithValue("@dateCreationClient", clientModel.dateCreationClient);
                         cmd.Parameters.Add("@status", NpgsqlTypes.NpgsqlDbType.Bit).Value = clientModel.status ? "1" : "0";
                         cmd.Parameters.AddWithValue("@typeBusinessId", clientModel.typeBusinessId);
 
