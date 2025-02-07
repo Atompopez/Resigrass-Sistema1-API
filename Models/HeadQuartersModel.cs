@@ -18,6 +18,7 @@
     public class HeadQuartersModelGet
     {
         public int id { get; set; }
+        public string nitCc { get; set; }
         public string numberPhone { get; set; }
         public int localityId { get; set; }
         public int clientId { get; set; }
@@ -32,6 +33,7 @@
     public class HeadQuartersModelCreation
     {
         public required string numberPhone { get; set; }
+        public string nitCc { get; set; }
         public required int localityId { get; set; }
         public required string nameHeadquarter { get; set; }
         public string? SignatureImage { get; set; }

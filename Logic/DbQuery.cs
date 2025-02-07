@@ -591,7 +591,7 @@ namespace ResiGrass_API.Logic
                         query = @"
                 SELECT h.id, h.""nameHeadquarter"", h.""numberPhone"", h.""address"", 
                        h.""localityId"", h.""clientId"", l.""nameLocality"", h.""status"", 
-                       h.""email"", h.""signature_image"" 
+                       h.""email"", h.""signature_image"", h.""nit_cc""
                 FROM ""headquarter"" h
                 INNER JOIN ""client"" c ON h.""clientId"" = c.id
                 INNER JOIN ""locality"" l ON h.""localityId"" = l.id
@@ -602,7 +602,7 @@ namespace ResiGrass_API.Logic
                         query = @"
                 SELECT h.id, h.""nameHeadquarter"", h.""numberPhone"", h.""address"", 
                        h.""localityId"", h.""clientId"", l.""nameLocality"", h.""status"", 
-                       h.""email"", h.""signature_image"" 
+                       h.""email"", h.""signature_image"", h.""nit_cc""
                 FROM ""headquarter"" h
                 INNER JOIN ""client"" c ON h.""clientId"" = c.id
                 INNER JOIN ""locality"" l ON h.""localityId"" = l.id
@@ -647,7 +647,8 @@ namespace ResiGrass_API.Logic
                                                 reader.GetString(8),
                                         signatureImage = reader.IsDBNull(9)
                                             ? null
-                                            : Convert.ToBase64String((byte[])reader["signature_image"])
+                                            : Convert.ToBase64String((byte[])reader["signature_image"]),
+                                        nitCc = reader.GetString(10)
                                     };
 
                                     Headquarter.Add(headquarter);
