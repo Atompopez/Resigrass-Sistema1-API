@@ -1567,7 +1567,7 @@ namespace ResiGrass_API.Logic
                 c.""id"" AS Id,
                 cl.""id"" AS ClienteId, cl.""nameClient"" AS nameClient,
                 lo.""nameLocality"" AS City,
-                h.""nitCc"" AS Nit,
+                h.""nit_cc"" AS Nit,
                 h.""address"" AS Address,
                 h.""numberPhone"" AS Phone,
                 cl.""typeBusinessId"" AS BusinessType,
