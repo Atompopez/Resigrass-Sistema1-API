@@ -288,7 +288,7 @@ namespace ResiGrass_API.Logic
                     conn.Open();
 
                     string query = @"
-                      SELECT c.""id"", c.""nitCc"", c.""nameClient"", c.""corporate_name"", c.""dateCreationClient"", 
+                      SELECT c.""id"", c.""nameClient"", c.""corporate_name"", c.""dateCreationClient"", 
                    c.""status"", c.""typeBusinessId"",
                    t.""id"", t.""businessDescription"", t.""status""
             FROM ""client"" c
@@ -324,17 +324,16 @@ namespace ResiGrass_API.Logic
                                 var client = new ClientModel
                                 {
                                     id = reader.GetInt32(0),
-                                    nitCc = reader.GetString(1),
-                                    nameClient = reader.GetString(2),
-                                    corporateName = reader.IsDBNull(3) ? null : reader.GetString(3), // Manejo de valores nulos
-                                    dateCreationClient = reader.GetDateTime(4),
-                                    status = reader.GetBoolean(5),
-                                    typeBusinessId = reader.GetInt32(6),
+                                    nameClient = reader.GetString(1),
+                                    corporateName = reader.IsDBNull(2) ? null : reader.GetString(2), // Manejo de valores nulos
+                                    dateCreationClient = reader.GetDateTime(3),
+                                    status = reader.GetBoolean(4),
+                                    typeBusinessId = reader.GetInt32(5),
                                     businessModelData = new TypeBusinessModel
                                     {
-                                        id = reader.GetInt32(7),
-                                        businessDescription = reader.GetString(8),
-                                        status = reader.GetBoolean(9)
+                                        id = reader.GetInt32(6),
+                                        businessDescription = reader.GetString(7),
+                                        status = reader.GetBoolean(8)
                                     }
                                 };
 
@@ -391,7 +390,6 @@ namespace ResiGrass_API.Logic
                                     var client = new ClientModel
                                     {
                                         id = reader.GetInt32(0),
-                                        nitCc = reader.GetString(1),
                                         nameClient = reader.GetString(2),
                                         dateCreationClient = reader.GetDateTime(3),
                                         status = reader.GetBoolean(4),

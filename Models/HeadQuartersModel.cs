@@ -3,15 +3,16 @@
     public class HeadQuartersModel
     {
         public int id { get; set; }
-        public  string numberPhone { get; set; }
-        public  int localityId { get; set; }
-        public  int clientId { get; set; }
-        public  string address { get;set; }
-        public  bool status { get; set; }
+        public string nitCc { get; set; }
+        public string numberPhone { get; set; }
+        public int localityId { get; set; }
+        public int clientId { get; set; }
+        public string address { get;set; }
+        public bool status { get; set; }
         public required string nameHeadquarter { get; set; }
         public LocalitiesModel? localitiesData { get; set; }
         public ClientModel? clientData { get; set; }
-        public  DateTime dateCreationHeadquarter { get; set; }
+        public DateTime dateCreationHeadquarter { get; set; }
     }
 
     public class HeadQuartersModelGet
