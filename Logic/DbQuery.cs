@@ -756,8 +756,8 @@ namespace ResiGrass_API.Logic
                     conn.Open();
                     string query = @"
                 INSERT INTO ""headquarter"" 
-                (""nameHeadquarter"", ""numberPhone"", ""address"", ""dateCreationHeadquarter"", ""status"", ""clientId"", ""localityId"", ""signature_image"")
-                VALUES (@nameHeadquarter, @numberPhone, @address, @dateCreationHeadquarter, @status, @clientId, @localityId, @signatureImage)
+                (""nameHeadquarter"", ""numberPhone"", ""address"", ""dateCreationHeadquarter"", ""status"", ""clientId"", ""localityId"", ""signature_image"", ""nit_cc"")
+                VALUES (@nameHeadquarter, @numberPhone, @address, @dateCreationHeadquarter, @status, @clientId, @localityId, @signatureImage, @nitCc)
                 RETURNING id, ""nameHeadquarter"", ""numberPhone"", ""address"", 
                           ""dateCreationHeadquarter"", ""status"", ""clientId"", ""localityId"", ""signature_image"";";
 
@@ -770,7 +770,7 @@ namespace ResiGrass_API.Logic
                         cmd.Parameters.Add("@status", NpgsqlTypes.NpgsqlDbType.Bit).Value = HeadQuartersModel.status ? "1" : "0";
                         cmd.Parameters.AddWithValue("@clientId", HeadQuartersModel.clientId);
                         cmd.Parameters.AddWithValue("@localityId", HeadQuartersModel.localityId);
-
+                        cmd.Parameters.AddWithValue("@nitCc", HeadQuartersModel.nitCc);
                         
                         byte[] signatureImageBytes = string.IsNullOrEmpty(HeadQuartersModel.SignatureImage)
                             ? null
@@ -824,7 +824,7 @@ namespace ResiGrass_API.Logic
 
                     string query = @"
                 UPDATE ""headquarter"" 
-                SET 
+                SET ""nit_cc"" = @nitCc,
                     ""nameHeadquarter"" = @nameHeadquarter,
                     ""numberPhone"" = @numberPhone, 
                     ""address"" = @address, 
@@ -845,6 +845,7 @@ namespace ResiGrass_API.Logic
                     using (var cmd = new NpgsqlCommand(query, conn))
                     {
                         cmd.Parameters.AddWithValue("@id", idClient);
+                        cmd.Parameters.AddWithValue("@nitCc", headQuarterModel.nitCc);
                         cmd.Parameters.AddWithValue("@nameHeadquarter", headQuarterModel.nameHeadquarter);
                         cmd.Parameters.AddWithValue("@numberPhone", headQuarterModel.numberPhone);
                         cmd.Parameters.AddWithValue("@address", headQuarterModel.address);
