@@ -425,7 +425,7 @@ namespace ResiGrass_API.Logic
                     conn.Open();
                     string query = @"
             INSERT INTO ""client"" (""nameClient"", ""corporate_name"", ""dateCreationClient"", ""status"", ""typeBusinessId"")
-            VALUES (@nitCc, @nameClient, @corporateName, @dateCreationClient, @status, @typeBusinessId)
+            VALUES (@nameClient, @corporateName, @dateCreationClient, @status, @typeBusinessId)
             RETURNING *";
 
                     using (var cmd = new NpgsqlCommand(query, conn))
@@ -443,10 +443,10 @@ namespace ResiGrass_API.Logic
                                 var client = new ClientModelInsert
                                 {
                                     nameClient = reader.GetString(1),
-                                    corporateName = reader.IsDBNull(2) ? null : reader.GetString(2), // Manejo del campo corporate_name
-                                    dateCreationClient = reader.GetDateTime(3),
-                                    status = reader.GetBoolean(4),
-                                    typeBusinessId = reader.GetInt32(5),
+                                    corporateName = reader.IsDBNull(5) ? null : reader.GetString(5), // Manejo del campo corporate_name
+                                    dateCreationClient = reader.GetDateTime(2),
+                                    status = reader.GetBoolean(3),
+                                    typeBusinessId = reader.GetInt32(4),
                                 };
                                 clients.Add(client);
                             }
