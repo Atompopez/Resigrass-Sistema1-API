@@ -84,6 +84,7 @@ namespace ResiGrass_API.Models
         public int ClienteId { get; set; }
         public string nameClient { get; set; }
         public string City { get; set; }
+        public string NIT { get; set; }
         public string Address { get; set; }
         public string Phone { get; set; }
         public int BusinessType { get; set; }
