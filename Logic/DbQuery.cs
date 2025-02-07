@@ -390,11 +390,11 @@ namespace ResiGrass_API.Logic
                                     var client = new ClientModel
                                     {
                                         id = reader.GetInt32(0),
-                                        nameClient = reader.GetString(2),
-                                        dateCreationClient = reader.GetDateTime(3),
-                                        status = reader.GetBoolean(4),
-                                        typeBusinessId = reader.GetInt32(5),
-                                        corporateName = reader.IsDBNull(6) ? null : reader.GetString(6)                                    
+                                        nameClient = reader.GetString(1),
+                                        dateCreationClient = reader.GetDateTime(2),
+                                        status = reader.GetBoolean(3),
+                                        typeBusinessId = reader.GetInt32(4),
+                                        corporateName = reader.IsDBNull(5) ? null : reader.GetString(5)                                    
                                     };
                                     Client.Add(client);
                                 }
@@ -424,13 +424,12 @@ namespace ResiGrass_API.Logic
                 {
                     conn.Open();
                     string query = @"
-            INSERT INTO ""client"" (""nitCc"", ""nameClient"", ""corporate_name"", ""dateCreationClient"", ""status"", ""typeBusinessId"")
+            INSERT INTO ""client"" (""nameClient"", ""corporate_name"", ""dateCreationClient"", ""status"", ""typeBusinessId"")
             VALUES (@nitCc, @nameClient, @corporateName, @dateCreationClient, @status, @typeBusinessId)
             RETURNING *";
 
                     using (var cmd = new NpgsqlCommand(query, conn))
                     {
-                        cmd.Parameters.AddWithValue("@nitCc", clientModel.nitCc);
                         cmd.Parameters.AddWithValue("@nameClient", clientModel.nameClient);
                         cmd.Parameters.AddWithValue("@corporateName", clientModel.corporateName ?? (object)DBNull.Value);
                         cmd.Parameters.AddWithValue("@dateCreationClient", DateTime.Now);
@@ -443,12 +442,11 @@ namespace ResiGrass_API.Logic
                             {
                                 var client = new ClientModelInsert
                                 {
-                                    nitCc = reader.GetString(1),
-                                    nameClient = reader.GetString(2),
-                                    corporateName = reader.IsDBNull(3) ? null : reader.GetString(3), // Manejo del campo corporate_name
-                                    dateCreationClient = reader.GetDateTime(4),
-                                    status = reader.GetBoolean(5),
-                                    typeBusinessId = reader.GetInt32(6),
+                                    nameClient = reader.GetString(1),
+                                    corporateName = reader.IsDBNull(2) ? null : reader.GetString(2), // Manejo del campo corporate_name
+                                    dateCreationClient = reader.GetDateTime(3),
+                                    status = reader.GetBoolean(4),
+                                    typeBusinessId = reader.GetInt32(5),
                                 };
                                 clients.Add(client);
                             }
@@ -526,7 +524,6 @@ namespace ResiGrass_API.Logic
                     string query = @"
             UPDATE ""client"" 
             SET 
-                ""nitCc"" = @nitCc,
                 ""nameClient"" = @nameClient, 
                 ""corporate_name"" = @corporateName,
                 ""dateCreationClient"" = @dateCreationClient, 
@@ -539,7 +536,6 @@ namespace ResiGrass_API.Logic
                     using (var cmd = new NpgsqlCommand(query, conn))
                     {
                         cmd.Parameters.AddWithValue("@id", IdClient);
-                        cmd.Parameters.AddWithValue("@nitCc", clientModel.nitCc);
                         cmd.Parameters.AddWithValue("@nameClient", clientModel.nameClient);
                         cmd.Parameters.AddWithValue("@corporateName", clientModel.corporateName ?? (object)DBNull.Value);
                         cmd.Parameters.AddWithValue("@dateCreationClient", DateTime.Now);
@@ -552,12 +548,11 @@ namespace ResiGrass_API.Logic
                             {
                                 var client = new ClientModelInsert
                                 {
-                                    nitCc = reader.GetString(1),
-                                    nameClient = reader.GetString(2),
-                                    corporateName = reader.IsDBNull(3) ? null : reader.GetString(6),
-                                    dateCreationClient = reader.GetDateTime(3),
-                                    status = reader.GetBoolean(4),
-                                    typeBusinessId = reader.GetInt32(5),
+                                    nameClient = reader.GetString(1),
+                                    corporateName = reader.IsDBNull(5) ? null : reader.GetString(5),
+                                    dateCreationClient = reader.GetDateTime(2),
+                                    status = reader.GetBoolean(3),
+                                    typeBusinessId = reader.GetInt32(4),
                                 };
                                 clients.Add(client);
                             }

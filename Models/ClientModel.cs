@@ -16,14 +16,10 @@
 
     public class ClientModelInsert
     {
-    
-        public  string nitCc { get; set; }
         public  string nameClient { get; set; }
         public  string corporateName { get; set; }
         public int typeBusinessId { get; set; }
         public  DateTime dateCreationClient { get; set; }
         public  bool status { get; set; }
-
-
     }
 }
