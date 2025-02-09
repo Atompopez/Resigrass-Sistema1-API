@@ -15,11 +15,11 @@ namespace ResiGrass_API.Models
         MeasuresModel? measuresModel { get; set; }
         MethodPaymentModel? methodPaymentModel { get; set; }
         CollectorsModel? collectorModel { get; set; }
-        public required float receivedFull {  get; set; }
+        public required float receivedFull { get; set; }
         public required int bowlEmpty { get; set; }
         public required DateTime receivedDate { get; set; }
         public required DateTime endDate { get; set; }
-        public required float fullPayment {  get; set; }
+        public required float fullPayment { get; set; }
         public required float priceUnit { get; set; }
         public required float netWeight { get; set; }
         public required string observations { get; set; }
@@ -36,7 +36,7 @@ namespace ResiGrass_API.Models
         public string nitCc { get; set; }
         public string nameClient { get; set; }
         public string serial_number { get; set; }// NIT del cliente
-        public string? nameLocality { get; set; } 
+        public string? nameLocality { get; set; }
         public byte[]? signature_image { get; set; }
 
 
@@ -56,24 +56,36 @@ namespace ResiGrass_API.Models
         MethodPaymentModel? methodPaymentModel { get; set; }
         CollectorsModel? collectorModel { get; set; }
         public float receivedFull { get; set; }
-        public  int bowlEmpty { get; set; }
-        public  DateTime receivedDate { get; set; }
-        public  DateTime endDate { get; set; }
-        public  float fullPayment { get; set; }
-        public  float priceUnit { get; set; }
-        public  float netWeight { get; set; }
-        public  string observations { get; set; }
-        public  string serial_number { get; set; }
-        
+        public int bowlEmpty { get; set; }
+        public DateTime receivedDate { get; set; }
+        public DateTime endDate { get; set; }
+        public float fullPayment { get; set; }
+        public float priceUnit { get; set; }
+        public float netWeight { get; set; }
+        public string observations { get; set; }
+        public string serial_number { get; set; }
 
 
+
+    }
+
+    public class InfoOil
+    {
+        public List<WeeklyOilData> WeeklyOilData { get; set; }
+        public List<ClientOil> Clients { get; set; }
+        public double Total { get; set; }
+    }
+
+    public class ClientOil
+    {
+        public string Name { get; set; }
+        public double Oil { get; set; }
     }
 
     public class WeeklyOilData
     {
         public DateTime WeekStart { get; set; }
         public DateTime WeekEnd { get; set; }
-        public double TotalOil { get; set; }
         public double TotalOilAllWeeks { get; set; }
     }
 

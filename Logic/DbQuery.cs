@@ -1644,9 +1644,9 @@ namespace ResiGrass_API.Logic
         #endregion
 
         #region GetWeeklyOilByDateRange
-        public List<WeeklyOilData> GetWeeklyOilByDateRange(DateTime startDate, DateTime endDate)
+        public InfoOil GetWeeklyOilByDateRange(DateTime startDate, DateTime endDate)
         {
-            var weeklyOilData = new List<WeeklyOilData>();
+            var weeklyOilData = new InfoOil();
 
             try
             {
@@ -1660,19 +1660,31 @@ namespace ResiGrass_API.Logic
 
                     string query = @"
                                 SELECT 
-                                    DATE_TRUNC('week', c.""receivedDate"") AS WeekStart,
-                                    COALESCE(SUM(c.""netWeight""), 0) AS TotalOil,
-                                    (SELECT COALESCE(SUM(c2.""netWeight""), 0) FROM collection c2
-                                     INNER JOIN headquarter h2 ON c2.""headquarterId"" = h2.""id""
-                                     WHERE h2.""is_certified"" = B'1'
-	                                 AND DATE(c2.""receivedDate"") BETWEEN DATE(@startDate) AND DATE(@endDate))
-	                                 AS TotalOilAllWeeks
-                                FROM collection c
-                                INNER JOIN headquarter h ON c.""headquarterId"" = h.""id""
-                                AND DATE(c.""receivedDate"") BETWEEN DATE(@startDate) AND DATE(@endDate)
-                                AND h.""is_certified"" = B'1'
-                                GROUP BY WeekStart
-                                ORDER BY WeekStart;";
+                                    subquery.WeekStart,
+                                    subquery.client,
+                                    subquery.TotalOil,
+                                    total_per_week.TotalOilAllWeeks
+                                FROM (
+                                    SELECT 
+                                        DATE_TRUNC('week', c.""receivedDate"") AS WeekStart,
+                                        cl.""nameClient"" || ' - ' || h.""nameHeadquarter"" AS client,
+                                        COALESCE(SUM(c.""netWeight""), 0) AS TotalOil
+                                    FROM collection c
+                                    INNER JOIN headquarter h ON c.""headquarterId"" = h.""id""
+                                    AND DATE(c.""receivedDate"") BETWEEN DATE(@startDate) AND DATE(@endDate)
+                                    INNER JOIN client cl ON h.""clientId"" = cl.id
+                                    WHERE h.""is_certified"" = B'1'
+                                    GROUP BY DATE_TRUNC('week', c.""receivedDate""), h.""nameHeadquarter"", cl.""nameClient"", h.""id"", cl.""id""
+                                ) AS subquery
+                                JOIN (
+                                    SELECT 
+                                        DATE_TRUNC('week', c.""receivedDate"") AS WeekStart,
+                                        COALESCE(SUM(c.""netWeight""), 0) AS TotalOilAllWeeks
+                                    FROM collection c
+                                    WHERE DATE(c.""receivedDate"") BETWEEN DATE(@startDate) AND DATE(@endDate)
+                                    GROUP BY DATE_TRUNC('week', c.""receivedDate"")
+                                ) AS total_per_week ON subquery.WeekStart = total_per_week.WeekStart
+                                ORDER BY subquery.WeekStart, subquery.client;";
 
                     using (var cmd = new NpgsqlCommand(query, conn))
                     {
@@ -1681,20 +1693,51 @@ namespace ResiGrass_API.Logic
 
                         using (var reader = cmd.ExecuteReader())
                         {
+                            double totaltotaloil = 0;
+
+                            List<ClientOil> clients = new();
+                            List<WeeklyOilData> info = new();
+
+
                             while (reader.Read())
                             {
-                                var weekStart = reader.GetDateTime(reader.GetOrdinal("WeekStart"));
-                                var totalOil = reader.GetDouble(reader.GetOrdinal("TotalOil"));
-                                var totalOilAllWeeks = reader.GetDouble(reader.GetOrdinal("TotalOilAllWeeks"));
+                                var clientName = reader.GetString(reader.GetOrdinal("client"));
+                                var weekstart = reader.GetDateTime(reader.GetOrdinal("weekstart"));
+                                var totalclient = reader.GetDouble(reader.GetOrdinal("totaloil"));
+                                var totalweek = reader.GetDouble(reader.GetOrdinal("totaloilallweeks"));
 
-                                weeklyOilData.Add(new WeeklyOilData
+                                totaltotaloil += totalclient;
+
+                                var client = clients.FirstOrDefault(x => x.Name == clientName);
+
+                                if (client != null)
                                 {
-                                    WeekStart = weekStart,
-                                    WeekEnd = weekStart.AddDays(6), // El fin de la semana es 6 días después
-                                    TotalOil = totalOil,
-                                    TotalOilAllWeeks = totalOilAllWeeks
-                                });
+                                    client.Oil += totalclient;
+                                }
+                                else
+                                {
+                                    clients.Add(new ClientOil
+                                    {
+                                        Name = clientName,
+                                        Oil = totalclient
+                                    });
+                                }
+
+                                if (!info.Any(x => x.WeekStart == weekstart))
+                                {
+                                    info.Add(new WeeklyOilData
+                                    {
+                                        WeekStart = weekstart,
+                                        WeekEnd = weekstart.AddDays(6),
+                                        TotalOilAllWeeks = totalweek
+                                    });
+                                }
+                                
                             }
+
+                            weeklyOilData.WeeklyOilData = info;
+                            weeklyOilData.Clients = clients;
+                            weeklyOilData.Total = totaltotaloil;
                         }
                     }
                 }
