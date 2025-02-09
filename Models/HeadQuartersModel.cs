@@ -13,6 +13,7 @@
         public LocalitiesModel? localitiesData { get; set; }
         public ClientModel? clientData { get; set; }
         public DateTime dateCreationHeadquarter { get; set; }
+        public bool isCertified { get; set; }
     }
 
     public class HeadQuartersModelGet
@@ -27,7 +28,8 @@
         public bool status { get; set; }
         public string? email { get; set; }
         public required string nameHeadquarter { get; set; }
-        public LocalitiesModelGet? localitiesData { get; set; }                
+        public LocalitiesModelGet? localitiesData { get; set; }
+        public bool isCertified { get; set; }
     }
 
     public class HeadQuartersModelCreation
@@ -42,5 +44,6 @@
         public  string? email { get; set; }
         public required DateTime dateCreationHeadquarter { get; set; }
         public required bool status { get; set; }
+        public bool isCertified { get; set; }
     }
 }
