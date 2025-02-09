@@ -635,7 +635,7 @@ namespace ResiGrass_API.Logic
                         query = @"
                 SELECT h.id, h.""nameHeadquarter"", h.""numberPhone"", h.""address"", 
                        h.""localityId"", h.""clientId"", l.""nameLocality"", h.""status"", 
-                       h.""email"", h.""signature_image"", h.""nit_cc""
+                       h.""email"", h.""signature_image"", h.""nit_cc"", h.""is_certified""
                 FROM ""headquarter"" h
                 INNER JOIN ""client"" c ON h.""clientId"" = c.id
                 INNER JOIN ""locality"" l ON h.""localityId"" = l.id
@@ -646,7 +646,7 @@ namespace ResiGrass_API.Logic
                         query = @"
                 SELECT h.id, h.""nameHeadquarter"", h.""numberPhone"", h.""address"", 
                        h.""localityId"", h.""clientId"", l.""nameLocality"", h.""status"", 
-                       h.""email"", h.""signature_image"", h.""nit_cc""
+                       h.""email"", h.""signature_image"", h.""nit_cc"", h.""is_certified""
                 FROM ""headquarter"" h
                 INNER JOIN ""client"" c ON h.""clientId"" = c.id
                 INNER JOIN ""locality"" l ON h.""localityId"" = l.id
@@ -692,7 +692,9 @@ namespace ResiGrass_API.Logic
                                         signatureImage = reader.IsDBNull(9)
                                             ? null
                                             : Convert.ToBase64String((byte[])reader["signature_image"]),
-                                        nitCc = reader.GetString(10)
+                                        nitCc = reader.GetString(10),
+                                        isCertified = reader.GetFieldValue<bool>(11)
+
                                     };
 
                                     Headquarter.Add(headquarter);
@@ -735,7 +737,8 @@ namespace ResiGrass_API.Logic
                     ""status"", 
                     ""clientId"", 
                     ""localityId"",
-                    ""signature_image""
+                    ""signature_image"",
+                    ""is_certified""
                 FROM ""headquarter""
                 WHERE id = @id;
             ";
@@ -768,7 +771,8 @@ namespace ResiGrass_API.Logic
                                         localityId = reader.GetInt32(reader.GetOrdinal("localityId")),
                                         SignatureImage = reader.IsDBNull(reader.GetOrdinal("signature_image"))
                                             ? null
-                                            : Convert.ToBase64String((byte[])reader["signature_image"]) 
+                                            : Convert.ToBase64String((byte[])reader["signature_image"]),
+                                        isCertified = reader.GetBoolean(reader.GetOrdinal("is_certified"))
                                     };
 
                                     Headquarter.Add(headquarter);
@@ -800,8 +804,8 @@ namespace ResiGrass_API.Logic
                     conn.Open();
                     string query = @"
                 INSERT INTO ""headquarter"" 
-                (""nameHeadquarter"", ""numberPhone"", ""address"", ""dateCreationHeadquarter"", ""status"", ""clientId"", ""localityId"", ""signature_image"", ""nit_cc"",""email"")
-                VALUES (@nameHeadquarter, @numberPhone, @address, @dateCreationHeadquarter, @status, @clientId, @localityId, @signatureImage, @nitCc, @email)
+                (""nameHeadquarter"", ""numberPhone"", ""address"", ""dateCreationHeadquarter"", ""status"", ""clientId"", ""localityId"", ""signature_image"", ""nit_cc"",""email"", ""is_certified"")
+                VALUES (@nameHeadquarter, @numberPhone, @address, @dateCreationHeadquarter, @status, @clientId, @localityId, @signatureImage, @nitCc, @email, @isCertified)
                 RETURNING id, ""nameHeadquarter"", ""numberPhone"", ""address"", 
                           ""dateCreationHeadquarter"", ""status"", ""clientId"", ""localityId"", ""signature_image"";";
 
@@ -815,8 +819,9 @@ namespace ResiGrass_API.Logic
                         cmd.Parameters.AddWithValue("@clientId", HeadQuartersModel.clientId);
                         cmd.Parameters.AddWithValue("@localityId", HeadQuartersModel.localityId);
                         cmd.Parameters.AddWithValue("@nitCc", HeadQuartersModel.nitCc);
-                        cmd .Parameters.AddWithValue("@email", HeadQuartersModel.email);
-                        
+                        cmd.Parameters.AddWithValue("@email", HeadQuartersModel.email);
+                        cmd.Parameters.Add("@isCertified", NpgsqlTypes.NpgsqlDbType.Bit).Value = HeadQuartersModel.isCertified ? "1" : "0";
+
                         byte[] signatureImageBytes = string.IsNullOrEmpty(HeadQuartersModel.SignatureImage)
                             ? null
                             : Convert.FromBase64String(HeadQuartersModel.SignatureImage);
