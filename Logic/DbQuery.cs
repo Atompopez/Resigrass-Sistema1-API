@@ -2020,6 +2020,7 @@ namespace ResiGrass_API.Logic
 
                                 return new RecolectionModel
                                 {
+                                    id = reader.GetInt32(reader.GetOrdinal("id")),
                                     receivedDate = reader.GetDateTime(reader.GetOrdinal("receivedDate")),
                                     endDate = reader.GetDateTime(reader.GetOrdinal("endDate")),
                                     fullPayment = reader.GetFloat(reader.GetOrdinal("fullPayment")),
