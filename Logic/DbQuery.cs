@@ -1723,12 +1723,12 @@ namespace ResiGrass_API.Logic
                                     });
                                 }
 
-                                if (!info.Any(x => x.WeekStart == weekstart))
+                                if (!info.Any(x => x.WeekStart == weekstart.ToString("yyyy-MM-dd")))
                                 {
                                     info.Add(new WeeklyOilData
                                     {
-                                        WeekStart = weekstart,
-                                        WeekEnd = weekstart.AddDays(6),
+                                        WeekStart = weekstart.ToString("yyyy-MM-dd"),
+                                        WeekEnd = weekstart.AddDays(6).ToString("yyyy-MM-dd"),
                                         TotalOilAllWeeks = totalweek
                                     });
                                 }

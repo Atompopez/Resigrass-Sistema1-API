@@ -84,8 +84,8 @@ namespace ResiGrass_API.Models
 
     public class WeeklyOilData
     {
-        public DateTime WeekStart { get; set; }
-        public DateTime WeekEnd { get; set; }
+        public string WeekStart { get; set; }
+        public string WeekEnd { get; set; }
         public double TotalOilAllWeeks { get; set; }
     }
 
