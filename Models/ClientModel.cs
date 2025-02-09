@@ -10,7 +10,7 @@
 
         public required DateTime dateCreationClient { get; set; }
         public required bool status {  get; set; }
-
+        public string partner { get; set; }
     
     }
 

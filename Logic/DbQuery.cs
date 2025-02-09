@@ -290,10 +290,10 @@ namespace ResiGrass_API.Logic
                     string query = @"
                       SELECT c.""id"", c.""nameClient"", c.""corporate_name"", c.""dateCreationClient"", 
                    c.""status"", c.""typeBusinessId"",
-                   t.""id"", t.""businessDescription"", t.""status""
+                   t.""id"", t.""businessDescription"", t.""status"", p.""name""
             FROM ""client"" c
             INNER JOIN ""typeBusiness"" t ON c.""typeBusinessId"" = t.""id""
-			
+			INNER JOIN ""partners"" p ON c.""partner_id"" = p.""id""
         ";
 
                     if (idTypeBusiness == 0)
@@ -334,7 +334,8 @@ namespace ResiGrass_API.Logic
                                         id = reader.GetInt32(6),
                                         businessDescription = reader.GetString(7),
                                         status = reader.GetBoolean(8)
-                                    }
+                                    },
+                                    partner = reader.GetString(9)
                                 };
 
                                 clients.Add(client);
