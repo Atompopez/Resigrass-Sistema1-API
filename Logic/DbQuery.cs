@@ -1990,7 +1990,7 @@ namespace ResiGrass_API.Logic
                     cl.""typeBusinessId"", 
                     tb.""businessDescription"" AS BusinessType,
                     h.""nameHeadquarter"", -- Nombre de la sede
-                    cl.""nitCc"",
+                    h.""nit_cc"" AS ""nitCc"",
                     cl.""nameClient"",
                     c.""serial_number"",
                     lo.""nameLocality"",
