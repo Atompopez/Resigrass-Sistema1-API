@@ -16,10 +16,11 @@
 
     public class ClientModelInsert
     {
-        public  string nameClient { get; set; }
-        public  string corporateName { get; set; }
+        public string nameClient { get; set; }
+        public int partner { get; set; }
+        public string corporateName { get; set; }
         public int typeBusinessId { get; set; }
-        public  DateTime dateCreationClient { get; set; }
-        public  bool status { get; set; }
+        public DateTime dateCreationClient { get; set; }
+        public bool status { get; set; }
     }
 }

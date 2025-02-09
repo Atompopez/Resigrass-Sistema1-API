@@ -467,8 +467,8 @@ namespace ResiGrass_API.Logic
                 {
                     conn.Open();
                     string query = @"
-            INSERT INTO ""client"" (""nameClient"", ""corporate_name"", ""dateCreationClient"", ""status"", ""typeBusinessId"")
-            VALUES (@nameClient, @corporateName, @dateCreationClient, @status, @typeBusinessId)
+            INSERT INTO ""client"" (""nameClient"", ""corporate_name"", ""dateCreationClient"", ""status"", ""typeBusinessId"", ""partner_id"")
+            VALUES (@nameClient, @corporateName, @dateCreationClient, @status, @typeBusinessId, @partner)
             RETURNING *";
 
                     using (var cmd = new NpgsqlCommand(query, conn))
@@ -478,6 +478,7 @@ namespace ResiGrass_API.Logic
                         cmd.Parameters.AddWithValue("@dateCreationClient", DateTime.Now);
                         cmd.Parameters.Add("@status", NpgsqlTypes.NpgsqlDbType.Bit).Value = clientModel.status ? "1" : "0";
                         cmd.Parameters.AddWithValue("@typeBusinessId", clientModel.typeBusinessId);
+                        cmd.Parameters.AddWithValue("@partner", clientModel.partner);
 
                         using (var reader = cmd.ExecuteReader())
                         {
