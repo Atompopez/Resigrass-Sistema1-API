@@ -44,7 +44,17 @@ namespace ResiGrass_API.Controllers
         {
             var client = _dbQuery.GetClients(idTypeBusiness);
             return Ok(client);
-        } 
+        }
+        #endregion
+
+        #region GetPartners
+        [HttpGet("GetPartners")]
+        [Authorize(AuthenticationSchemes = "Bearer")]
+        public IActionResult GetPartners()
+        {
+            var client = _dbQuery.GetPartners();
+            return Ok(client);
+        }
         #endregion
 
         #region ClientCreation

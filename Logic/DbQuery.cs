@@ -8,6 +8,7 @@ using System.Data;
 using DocumentFormat.OpenXml.Drawing.Diagrams;
 using static IdentityServer4.Models.IdentityResources;
 using iText.StyledXmlParser.Jsoup.Select;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 
 
 
@@ -411,6 +412,47 @@ namespace ResiGrass_API.Logic
             }
 
             return Client;
+        }
+        #endregion
+
+        #region GetPartners
+        public List<PartnerModel> GetPartners()
+        {
+            var Partners = new List<PartnerModel>();
+
+            try
+            {
+                using (var conn = new NpgsqlConnection(_connectionString))
+                {
+                    conn.Open();
+                    string query;
+
+                    query = "SELECT * FROM partners";
+
+                    using (var cmd = new NpgsqlCommand(query, conn))
+                    {
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                Partners.Add( new PartnerModel
+                                {
+                                    id = reader.GetInt32(reader.GetOrdinal("id")),
+                                    name = reader.GetString(reader.GetOrdinal("name")),
+                                    numbers = reader.GetFieldValue<string[]>(reader.GetOrdinal("numbers"))
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al obtener los tipos de negocio: {ex}");
+                return new List<PartnerModel>();
+            }
+
+            return Partners;
         }
         #endregion
 
