@@ -63,10 +63,7 @@ namespace ResiGrass_API.Models
         public float priceUnit { get; set; }
         public float netWeight { get; set; }
         public string observations { get; set; }
-        public string serial_number { get; set; }
-
-
-
+        public string number_collection { get; set; }
     }
 
     public class InfoOil

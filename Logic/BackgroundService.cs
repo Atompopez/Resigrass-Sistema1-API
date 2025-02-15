@@ -87,7 +87,7 @@ namespace ResiGrass_API.Logic
                     var mailMessage = new MailMessage
                     {
                         From = new MailAddress("resigrass0@gmail.com"),
-                        Subject = "Notificación de nuevo certificado de recolección",
+                        Subject = $"{DateTime.Now.ToString("dd MMM yyyy")} Certificado de Recolección Aceite Vegetal Usado ({DateTime.Now.ToString("dd MMM yyyy")} Certificado de Recolección Aceite Vegetal Usado)",
                         Body = emailBody,
                         IsBodyHtml = true,
                     };
@@ -331,13 +331,11 @@ namespace ResiGrass_API.Logic
             try
             {
                 var sb = new StringBuilder();
-                sb.AppendLine("<h1>RESIGRASS</h1>");
-                sb.AppendLine("<p>Estimado cliente,</p>");
-                sb.AppendLine($"<p>Este es su certificado de la recolección número <strong>{record.serial_number}</strong>, realizada el día <strong>{record.receivedDate.ToShortDateString()}</strong>.</p>");
-                sb.AppendLine("<ul>");
-                sb.AppendLine($"<li>Kilogramos recibidos: {record.netWeight}</li>");
-                sb.AppendLine("</ul>");
-                sb.AppendLine("<p>Gracias por confiar en nuestros servicios.</p>");
+                sb.AppendLine("<p><strong>NOTA:</strong> Imprimir Documento, Anexar carpeta para visita de sanidad.</p>");
+                sb.AppendLine("<h2>Aceite Vegetal Usado (AVU)</h2>");
+                sb.AppendLine("<h3>Resigrass S.A.S</h3>");
+                sb.AppendLine("<p><strong>Correo electrónico:</strong> resigrass@hotmail.com</p>");
+                sb.AppendLine("<p><strong>Teléfonos:</strong> 3208482407 - 3106747173</p>");
 
                 return sb.ToString();
             }
@@ -347,6 +345,7 @@ namespace ResiGrass_API.Logic
                 throw;
             }
         }
+
         #endregion
     }
 }

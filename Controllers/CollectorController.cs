@@ -19,19 +19,12 @@ namespace ResiGrass_API.Controllers
         }
 
         #region GetNextNumber
-        [HttpGet("GetNextNumber/{idClient}")]
-        [Authorize(AuthenticationSchemes = "Bearer")]
-        public IActionResult GetNextNumber(int idClient)
+        //[HttpGet("GetNextNumber/{idClient}")]
+        //[Authorize(AuthenticationSchemes = "Bearer")]
+        public int GetNextNumber()
         {
-            var number = _dbQuery.GetNextNumber(idClient);
-            if (number != 0)
-            {
-                return Ok(number);
-            }
-            else
-            {
-                return BadRequest("Error al consultar el tipo de recolector");
-            }
+            var number = _dbQuery.GetNextNumber();
+            return number;
         }
         #endregion
 
@@ -160,10 +153,15 @@ namespace ResiGrass_API.Controllers
       //  [Authorize(AuthenticationSchemes = "Bearer")]
         public IActionResult CollectorColection([FromBody] RecolectionModelInsert CollectionInsertModel)
         {
+            var number = _dbQuery.GetNextNumber();
+            var newNumber = $"RS-01-{number}";
 
-            var client = _dbQuery.InsertCollection(CollectionInsertModel);
-
-            return Ok(client);
+            if (number != 0)
+            {
+                var client = _dbQuery.InsertCollection(CollectionInsertModel, newNumber);
+                return Ok(client);
+            }
+            return BadRequest("Error al consultar el número de recolección");
         }
 
         #endregion

@@ -24,9 +24,8 @@ namespace ResiGrass_API.Logic
         }
 
         #region GetNextNumber
-        public int GetNextNumber(int IdCollector)
+        public int GetNextNumber()
         {
-            string nextSerial = "0";
             try
             {
                 using (var conn = new NpgsqlConnection(_connectionString))
@@ -35,29 +34,18 @@ namespace ResiGrass_API.Logic
                     string query;
 
                     string serialQuery = @"
-                            SELECT ""serial_number""
-                            FROM collection
-                            WHERE ""collectorId"" = @collectorId
-                            ORDER BY ""serial_number"" DESC
-                            LIMIT 1";
+                            SELECT LPAD(CAST(MAX(CAST(RIGHT(serial_number, 4) AS INTEGER)) + 1 AS TEXT), 4, '0') 
+                            FROM collection;";
 
                     using (var serialCmd = new NpgsqlCommand(serialQuery, conn))
                     {
-                        serialCmd.Parameters.AddWithValue("@collectorId", IdCollector);
-
                         var result = serialCmd.ExecuteScalar();
                         
-
                         if (result != null)
                         {
-                            var lastSerial = result.ToString();
-                            var lastNumber = int.Parse(lastSerial.Split('-').Last());
-                            nextSerial = $"{(lastNumber + 1):D1}";
+                            return int.Parse(result.ToString());
                         }
-                        else
-                        {
-                            nextSerial = $"1";
-                        }
+                        return 0;
                     }
                 }
             }
@@ -65,7 +53,7 @@ namespace ResiGrass_API.Logic
             {
                 Console.WriteLine($"Error al obtener los tipos de negocio: {ex}");
             }
-            return int.Parse(nextSerial);
+            return 0;
         }
         #endregion
 
@@ -1470,32 +1458,33 @@ namespace ResiGrass_API.Logic
 
                                         collectorReader.Close();
 
-                                        string serialQuery = @"
-                                        SELECT ""serial_number""
-                                        FROM collection
-                                        WHERE ""collectorId"" = @collectorId
-                                        ORDER BY id DESC
-                                        LIMIT 1";
+                                        //string serialQuery = @"
+                                        //SELECT ""serial_number""
+                                        //FROM collection
+                                        //WHERE ""collectorId"" = @collectorId
+                                        //ORDER BY id DESC
+                                        //LIMIT 1";
 
-                                        using (var serialCmd = new NpgsqlCommand(serialQuery, conn))
-                                        {
-                                            serialCmd.Parameters.AddWithValue("@collectorId", collectorId);
+                                        //using (var serialCmd = new NpgsqlCommand(serialQuery, conn))
+                                        //{
+                                        //    serialCmd.Parameters.AddWithValue("@collectorId", collectorId);
 
-                                            var result = serialCmd.ExecuteScalar();
-                                            string nextSerial;
+                                        //    var result = serialCmd.ExecuteScalar();
+                                        //    string nextSerial;
 
-                                            if (result != null)
-                                            {
-                                                var lastSerial = result.ToString();
-                                                var lastNumber = int.Parse(lastSerial.Split('-').Last());
-                                                nextSerial = $"{(lastNumber + 1):D1}";
-                                            }
-                                            else
-                                            {
-                                                nextSerial = $"1";
-                                            }
-                                            collectorData.nextSerialNumber = nextSerial;
-                                        }
+                                        //    //if (result != null)
+                                        //    //{
+                                        //    //    var lastSerial = result.ToString();
+                                        //    //    var lastNumber = int.Parse(lastSerial.Split('-').Last());
+                                        //    //    nextSerial = $"{(lastNumber + 1):D1}";
+                                        //    //}
+                                        //    //else
+                                        //    //{
+                                        //    //    nextSerial = $"1";
+                                        //    //}
+                                        //    collectorData.nextSerialNumber = "0";
+                                        //}
+                                        collectorData.nextSerialNumber = "0";
 
                                         response.Data = collectorData;
                                         response.Success = true;
@@ -1523,7 +1512,7 @@ namespace ResiGrass_API.Logic
         #endregion
 
         #region InsertCollection
-        public List<RecolectionModelInsert> InsertCollection(RecolectionModelInsert CollectionModel)
+        public List<RecolectionModelInsert> InsertCollection(RecolectionModelInsert CollectionModel, string number)
         {
             var Collection = new List<RecolectionModelInsert>();
 
@@ -1538,11 +1527,11 @@ namespace ResiGrass_API.Logic
                 INSERT INTO collection (
                     ""receivedDate"", ""endDate"", ""fullPayment"", ""priceUnit"", ""netWeight"",
                     observations, ""receivedFull"", ""bowlEmpty"", ""collectorId"", 
-                    ""headquarterId"", ""measureId"", ""methodPaymentId"", ""productId"", ""serial_number"")
+                    ""headquarterId"", ""measureId"", ""methodPaymentId"", ""productId"", ""serial_number"", ""number_collection"")
                 VALUES (
                     @receivedDate, @endDate, @fullPayment, @priceUnit, @netWeight, 
                     @observations, @receivedFull, @bowlEmpty, @collectorId, 
-                    @headquarterId, @measureId, @methodPaymentId, @productId, @serialNumber)
+                    @headquarterId, @measureId, @methodPaymentId, @productId, @serialNumber, @number_collecion)
                 RETURNING *";
 
                     using (var cmd = new NpgsqlCommand(query, conn))
@@ -1560,7 +1549,8 @@ namespace ResiGrass_API.Logic
                         cmd.Parameters.AddWithValue("@measureId", CollectionModel.measureId);
                         cmd.Parameters.AddWithValue("@methodPaymentId", CollectionModel.methodPaymentId);
                         cmd.Parameters.AddWithValue("@productId", CollectionModel.productId);
-                        cmd.Parameters.AddWithValue("@serialNumber", CollectionModel.serial_number);
+                        cmd.Parameters.AddWithValue("@serialNumber", number);
+                        cmd.Parameters.AddWithValue("@number_collecion", CollectionModel.number_collection);
 
                         using (var reader = cmd.ExecuteReader())
                         {
@@ -1994,9 +1984,8 @@ namespace ResiGrass_API.Logic
                     h.""numberPhone"" AS HeadquarterPhone, 
                     cl.""typeBusinessId"", 
                     tb.""businessDescription"" AS BusinessType,
-                    h.""nameHeadquarter"", -- Nombre de la sede
+                    cl.""nameClient"" AS ""nameHeadquarter"", -- Nombre de la sede
                     h.""nit_cc"" AS ""nitCc"",
-                    cl.""nameClient"",
                     c.""serial_number"",
                     lo.""nameLocality"",
                     h.signature_image
