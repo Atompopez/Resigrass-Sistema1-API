@@ -21,7 +21,7 @@ namespace ResiGrass_API.Controllers
         #region GetNextNumber
         //[HttpGet("GetNextNumber/{idClient}")]
         //[Authorize(AuthenticationSchemes = "Bearer")]
-        public int GetNextNumber()
+        public string GetNextNumber()
         {
             var number = _dbQuery.GetNextNumber();
             return number;
@@ -156,7 +156,7 @@ namespace ResiGrass_API.Controllers
             var number = _dbQuery.GetNextNumber();
             var newNumber = $"RS-01-{number}";
 
-            if (number != 0)
+            if (number != "0")
             {
                 var client = _dbQuery.InsertCollection(CollectionInsertModel, newNumber);
                 return Ok(client);

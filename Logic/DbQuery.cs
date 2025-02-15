@@ -24,7 +24,7 @@ namespace ResiGrass_API.Logic
         }
 
         #region GetNextNumber
-        public int GetNextNumber()
+        public string GetNextNumber()
         {
             try
             {
@@ -43,9 +43,9 @@ namespace ResiGrass_API.Logic
                         
                         if (result != null)
                         {
-                            return int.Parse(result.ToString());
+                            return result.ToString();
                         }
-                        return 0;
+                        return "0";
                     }
                 }
             }
@@ -53,7 +53,7 @@ namespace ResiGrass_API.Logic
             {
                 Console.WriteLine($"Error al obtener los tipos de negocio: {ex}");
             }
-            return 0;
+            return "0";
         }
         #endregion
 
