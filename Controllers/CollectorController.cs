@@ -1,5 +1,4 @@
-﻿using IdentityServer4.Models;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ResiGrass_API.Logic;
 using ResiGrass_API.Models;
