@@ -1411,7 +1411,7 @@ namespace ResiGrass_API.Logic
 
                             string queryCollector = @"
                             SELECT c.id, c.""nameCollector"", c.""numberPhoneCollector"", 
-                                   tc.""descriptionCollector"", c.""profile_image"", c.""status""
+                                   tc.""descriptionCollector"", c.""profile_image"", c.""status"", c.""partner""
                             FROM collector c
                             INNER JOIN ""typeCollector"" tc ON c.""typeCollectorId"" = tc.id
                             INNER JOIN ""loginCollector"" lc ON c.""loginCollectorId"" = lc.id
@@ -1449,6 +1449,7 @@ namespace ResiGrass_API.Logic
                                                 descriptionCollector = collectorReader.GetString(3),
                                             },
                                             status = collectorReader.GetBoolean(5),
+                                            partner = collectorReader.GetInt32(6)
                                         };
 
                                         
