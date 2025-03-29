@@ -23,6 +23,7 @@
         public string profile_image { get; set; }
 
         public bool status { get; set; }
+        public int partner { get; set; }
 
         public string nextSerialNumber { get; set; }
         public TypeCollectorsModelSelect? typeCollectorsModelId { get; set; }

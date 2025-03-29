@@ -289,15 +289,15 @@ namespace ResiGrass_API.Logic
                     {
                         query += @" WHERE c.""status"" = '1'";
                     }
-                    else if (idTypeBusiness == -1)
+                    else if (idTypeBusiness == -1 || idTypeBusiness == -2)
                     {
-                        // No se filtra por ningún criterio adicional.
+                        query += $@" WHERE c.""partner_id"" = '{idTypeBusiness * -1}'";
                     }
                     else
                     {
                         query += @" WHERE c.""typeBusinessId"" = @idTypeBusiness AND c.""status"" = '1'";
                     }
-                    query += @"ORDER BY C.""nameClient""";
+                    query += @" ORDER BY C.""nameClient""";
 
                     using (var cmd = new NpgsqlCommand(query, conn))
                     {
@@ -357,7 +357,7 @@ namespace ResiGrass_API.Logic
 
                     if (IdClient == 0)
                     {
-                        query = "SELECT * FROM \"client\"";
+                        query = "SELECT * FROM client c WHERE c.status = 1";
                     }
                     else
                     {

@@ -19,8 +19,8 @@ namespace ResiGrass_API.Controllers
         }
 
         #region GetNextNumber
-        //[HttpGet("GetNextNumber/{idClient}")]
-        //[Authorize(AuthenticationSchemes = "Bearer")]
+        [HttpGet("GetNextNumber/{idClient}")]
+        [Authorize(AuthenticationSchemes = "Bearer")]
         public string GetNextNumber()
         {
             var number = _dbQuery.GetNextNumber();
