@@ -152,14 +152,18 @@ namespace ResiGrass_API.Controllers
       //  [Authorize(AuthenticationSchemes = "Bearer")]
         public IActionResult CollectorColection([FromBody] RecolectionModelInsert CollectionInsertModel)
         {
-            var number = _dbQuery.GetNextNumber();
-            var newNumber = $"RS-01-{number}";
+            var certificado = _dbQuery.GetCertificado(CollectionInsertModel.headquarterId);
+
+            string prefix = certificado ? "RS" : "ES";
+            var number = _dbQuery.GetNextNumber(certificado);
+            var newNumber = $"{prefix}-01-{number}";
 
             if (number != "0")
             {
                 var client = _dbQuery.InsertCollection(CollectionInsertModel, newNumber);
                 return Ok(client);
             }
+
             return BadRequest("Error al consultar el número de recolección");
         }
 

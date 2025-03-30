@@ -24,7 +24,7 @@ namespace ResiGrass_API.Logic
         }
 
         #region GetNextNumber
-        public string GetNextNumber()
+        public string GetNextNumber(bool is_certified)
         {
             try
             {
@@ -33,9 +33,12 @@ namespace ResiGrass_API.Logic
                     conn.Open();
                     string query;
 
-                    string serialQuery = @"
+                    string prefix = is_certified ? "RS" : "ES";
+
+                    string serialQuery = $@"
                             SELECT LPAD(CAST(MAX(CAST(RIGHT(serial_number, 4) AS INTEGER)) + 1 AS TEXT), 4, '0') 
-                            FROM collection;";
+                            FROM collection
+                            WHERE serial_number LIKE '%{prefix}%';";
 
                     using (var serialCmd = new NpgsqlCommand(serialQuery, conn))
                     {
@@ -2409,6 +2412,43 @@ namespace ResiGrass_API.Logic
             {
                 return users;
             }
+        }
+        #endregion
+
+        #region GetCertificado
+        public bool GetCertificado(int IdHeadquarter)
+        {
+            var isCertified = false;
+            try
+            {
+                using (var conn = new NpgsqlConnection(_connectionString))
+                {
+                    conn.Open();
+                    string query;
+
+                    query = $"select is_certified from headquarter h where h.id = {IdHeadquarter}";
+
+                    using (var cmd = new NpgsqlCommand(query, conn))
+                    {
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                if (!reader.IsDBNull(0))
+                                {
+                                    isCertified = reader.GetBoolean(0);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al obtener los tipos de negocio: {ex}");
+            }
+
+            return isCertified;
         }
         #endregion
     }
