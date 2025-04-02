@@ -298,7 +298,6 @@ namespace ResiGrass_API.Logic
                     }
                     else
                     {
-                        query += @" WHERE c.""typeBusinessId"" = @idTypeBusiness AND c.""status"" = '1'";
                     }
                     query += @" ORDER BY C.""nameClient""";
 
