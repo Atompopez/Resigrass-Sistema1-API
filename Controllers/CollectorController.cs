@@ -22,7 +22,7 @@ namespace ResiGrass_API.Controllers
         [Authorize(AuthenticationSchemes = "Bearer")]
         public string GetNextNumber()
         {
-            var number = _dbQuery.GetNextNumber();
+            var number = _dbQuery.GetNextNumber(true);
             return number;
         }
         #endregion
