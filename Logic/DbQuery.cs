@@ -294,7 +294,8 @@ namespace ResiGrass_API.Logic
                     }
                     else if (idTypeBusiness == -1 || idTypeBusiness == -2)
                     {
-                        query += $@" WHERE c.""partner_id"" = '{idTypeBusiness * -1}'";
+                        query += $@" WHERE c.""partner_id"" = '{idTypeBusiness * -1}'
+                                    AND c.""status"" = '1' ";
                     }
                     else
                     {
@@ -628,7 +629,7 @@ namespace ResiGrass_API.Logic
                        h.""email"", h.""signature_image"", h.""nit_cc"", h.""is_certified""
                 FROM ""headquarter"" h
                 INNER JOIN ""client"" c ON h.""clientId"" = c.id
-                INNER JOIN ""locality"" l ON h.""localityId"" = l.id
+                INNER JOIN ""locality"" l ON h.""localityId"" = l.id 
                 ORDER BY ""nameHeadquarter"";";
                     }
                     else
@@ -1019,7 +1020,8 @@ namespace ResiGrass_API.Logic
                     conn.Open();
                     string query;
 
-                    query = "select * from measure";
+                    query = @"select * from measure m 
+                                WHERE m.status = B'1' ";
 
 
                     using (var cmd = new NpgsqlCommand(query, conn))
@@ -1070,7 +1072,7 @@ namespace ResiGrass_API.Logic
                     conn.Open();
                     string query;
 
-                    query = "select * from \"methodPayment\"";
+                    query = "select * from \"methodPayment\" m WHERE m.status = B'1' ";
 
 
                     using (var cmd = new NpgsqlCommand(query, conn))
