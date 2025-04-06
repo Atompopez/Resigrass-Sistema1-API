@@ -15,7 +15,7 @@ namespace ResiGrass_API.Controllers
         {
             _dbQuery = dbQuery;
             bk = emailNotificationService;
-        }
+        }  
 
         #region GetNextNumber
         [HttpGet("GetNextNumber/{idClient}")]
