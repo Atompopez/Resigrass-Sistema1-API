@@ -1,7 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using ResiGrass_API.Models;
-using System.Net.Mail;
-using System.Net;
+﻿using ResiGrass_API.Models;
 using System.Text;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
@@ -13,14 +10,11 @@ using PIC = DocumentFormat.OpenXml.Drawing.Pictures;
 using WordprocessingParagraph = DocumentFormat.OpenXml.Wordprocessing.Paragraph;
 using WordprocessingRun = DocumentFormat.OpenXml.Wordprocessing.Run;
 using WordprocessingText = DocumentFormat.OpenXml.Wordprocessing.Text;
-using DocumentFormat.OpenXml.Drawing.Wordprocessing;
-using System.Drawing.Imaging;
-using System.Drawing;
-using System.IO;
-using SkiaSharp;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-
+using Resend;
+using System.Net.Mail;
+using System.Net.Mime;
 
 namespace ResiGrass_API.Logic
 {
@@ -29,11 +23,13 @@ namespace ResiGrass_API.Logic
         private readonly DbQuery _dbQuery;
         private readonly ILogger<EmailNotificationService> _logger;
         private readonly TimeSpan _interval = TimeSpan.FromHours(48);
+        private readonly IResend _resend;
 
         public EmailNotificationService(DbQuery dbQuery, ILogger<EmailNotificationService> logger)
         {
             _dbQuery = dbQuery;
             _logger = logger;
+            _resend = ResendClient.Create("re_4JikCCrp_7aDpuYuga72LrYVUwxHeFjrb");
         }
 
         #region ExecuteAsync
@@ -70,56 +66,56 @@ namespace ResiGrass_API.Logic
         #region SendEmailAsync
         public async Task SendEmailAsync(List<RecolectionModel> records)
         {
-            string filePath = string.Empty;
-            try
+            foreach (var record in records)
             {
-                var smtpClient = new SmtpClient("smtp.gmail.com")
-                {
-                    Port = 587,
-                    Credentials = new NetworkCredential("resigrass0@gmail.com", "xnzs bpwv mlhk fmxi"),
-                    EnableSsl = true,
-                };
+                string filePath = string.Empty;
 
-                foreach (var record in records)
+                try
                 {
                     string emailBody = CreateEmailBody(record);
 
-                    var mailMessage = new MailMessage
-                    {
-                        From = new MailAddress("resigrass0@gmail.com"),
-                        Subject = $"{DateTime.Now.ToString("dd MMM yyyy")} Certificado de Recolección Aceite Vegetal Usado ({DateTime.Now.ToString("dd MMM yyyy")} Certificado de Recolección Aceite Vegetal Usado)",
-                        Body = emailBody,
-                        IsBodyHtml = true,
-                    };
-
-                  //  record.email = "davidsant2188@gmail.com"; //SOLO PARA PRUEBAS
-                    mailMessage.To.Add(record.email);
-
+                    // Generar archivo Word con imagen (si aplica)
                     filePath = GenerateWordDocument(record);
-                    if(record.signature_image != null)
+                    if (record.signature_image != null)
                         AddFloatingImageFromBytes(filePath, record.signature_image);
 
-                    if (filePath != null)
-                    {
-                        using (var attachment = new Attachment(filePath))
-                        {
-                            mailMessage.Attachments.Add(attachment);
-                            await smtpClient.SendMailAsync(mailMessage);
-                        }
-                    }
-                    else
+                    if (!File.Exists(filePath))
                     {
                         _logger.LogWarning($"No se pudo generar el documento para el registro con ID {record.id}.");
+                        continue;
                     }
+
+                    byte[] fileBytes = File.ReadAllBytes(filePath);
+
+                    var message = new EmailMessage
+                    {
+                        From = "Resigrass <notificaciones@resigrass.com.co>",
+                        To = record.email,
+                        Subject = $"{DateTime.Now:dd MMM yyyy} Certificado de Recolección Aceite Vegetal Usado",
+                        HtmlBody = emailBody,
+                        Attachments = new List<EmailAttachment>()
+                        {
+                            new EmailAttachment
+                            {
+                                Filename = "Certificado.docx",
+                                Content = fileBytes,
+                                ContentType = MediaTypeNames.Application.Octet
+                            }
+                        }
+                    };
+
+                    var response = await _resend.EmailSendAsync(message);
+                    _logger.LogInformation($"Correo enviado a {record.email}. ID: {response.Content}");
                 }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error al enviar el correo: {ex.Message}");
-            }
-            finally
-            {
-                DeleteFile(filePath);
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Error al enviar el correo a {record.email}: {ex.Message}");
+                }
+                finally
+                {
+                    if (!string.IsNullOrEmpty(filePath) && File.Exists(filePath))
+                        File.Delete(filePath);
+                }
             }
         }
         #endregion
