@@ -3,6 +3,8 @@ using System.Net;
 using ResiGrass_API.Models;
 using System.Text;
 using System.Text.Json;
+using Resend;
+using System.Net.Mime;
 
 namespace ResiGrass_API.Logic
 {
@@ -12,17 +14,13 @@ namespace ResiGrass_API.Logic
         private readonly TimeSpan _interval = TimeSpan.FromDays(7);
         Random random;
         DbQuery _dbQuery;
+        IResend _resend;
 
         public SendTokenUser(DbQuery dbQuery)
         {
             random = new Random();
             _dbQuery = dbQuery;
-            _smtpClient = new SmtpClient("smtp.gmail.com")
-            {
-                Port = 587,
-                Credentials = new NetworkCredential("resigrass0@gmail.com", "xnzs bpwv mlhk fmxi"),
-                EnableSsl = true,
-            };
+            _resend = ResendClient.Create("re_4JikCCrp_7aDpuYuga72LrYVUwxHeFjrb");
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -61,17 +59,15 @@ namespace ResiGrass_API.Logic
 
                     string emailBody = CreateEmailBody(token);
 
-                    var mailMessage = new MailMessage
+                    var message = new EmailMessage
                     {
-                        From = new MailAddress("resigrass0@gmail.com"),
+                        From = "Resigrass <notificaciones@resigrass.com.co>",
+                        To = user.email,
                         Subject = "Notificación de nuevo token",
-                        Body = emailBody,
-                        IsBodyHtml = true,
+                        HtmlBody = emailBody
                     };
 
-                    mailMessage.To.Add(user.email);
-                    await _smtpClient.SendMailAsync(mailMessage);
-
+                    await _resend.EmailSendAsync(message);
                 }
                 return true;
             }
