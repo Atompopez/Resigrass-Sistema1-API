@@ -630,6 +630,7 @@ namespace ResiGrass_API.Logic
                 FROM ""headquarter"" h
                 INNER JOIN ""client"" c ON h.""clientId"" = c.id
                 INNER JOIN ""locality"" l ON h.""localityId"" = l.id 
+                WHERE h.""status"" = '1'
                 ORDER BY ""nameHeadquarter"";";
                     }
                     else
