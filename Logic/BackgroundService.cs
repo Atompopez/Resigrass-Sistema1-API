@@ -106,6 +106,7 @@ namespace ResiGrass_API.Logic
 
                     var response = await _resend.EmailSendAsync(message);
                     _logger.LogInformation($"Correo enviado a {record.email}. ID: {response.Content}");
+                    await Task.Delay(1000); // Esperar 1 segundo entre envíos
                 }
                 catch (Exception ex)
                 {
