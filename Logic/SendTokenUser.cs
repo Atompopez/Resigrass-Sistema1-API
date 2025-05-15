@@ -69,8 +69,8 @@ namespace ResiGrass_API.Logic
 
                     await _resend.EmailSendAsync(message);
                 }
-                return true;
                 await Task.Delay(1000); // Espera 1 segundo entre envíos para evitar problemas de límite de envío
+                return true;
             }
             catch (Exception ex)
             {
