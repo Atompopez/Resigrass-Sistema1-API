@@ -1905,7 +1905,7 @@ namespace ResiGrass_API.Logic
                             INNER JOIN headquarter h ON c.""headquarterId"" = h.id
                             INNER JOIN client cl ON cl.id = h.""clientId""
                             INNER JOIN locality lo ON lo.id = h.""localityId""
-                            WHERE c.""receivedDate""::date = (NOW() - INTERVAL '2 days')::date AND c.""is_sent"" = B'0';";
+                            WHERE c.""receivedDate""::date <= (NOW() - INTERVAL '2 days')::date AND c.""is_sent"" = B'0';";
 
                         using (var cmd = new NpgsqlCommand(query, conn, transaction))
                         {
