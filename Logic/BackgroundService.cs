@@ -59,6 +59,11 @@ namespace ResiGrass_API.Logic
             if (recordsToNotify.Any())
             {
                 await SendEmailAsync(recordsToNotify);
+
+                foreach (var record in recordsToNotify)
+                {
+                    _dbQuery.MarkAsSent(record.id);
+                }
             }
         }
         #endregion
@@ -91,6 +96,7 @@ namespace ResiGrass_API.Logic
                     {
                         From = "Resigrass <notificaciones@resigrass.com.co>",
                         To = record.email,
+                        Bcc = "resigrass0@gmail.com",
                         Subject = $"{DateTime.Now:dd MMM yyyy} Certificado de Recolección Aceite Vegetal Usado",
                         HtmlBody = emailBody,
                         Attachments = new List<EmailAttachment>()
@@ -280,7 +286,7 @@ namespace ResiGrass_API.Logic
                     ReplaceTextInDocument(body, "name", record.nameClient ?? "No disponible");
                     ReplaceTextInDocument(body, "nit", record.nitCc ?? "No disponible");
                     ReplaceTextInDocument(body, "address", record.address ?? "No disponible");
-                    ReplaceTextInDocument(body, "locality", record.nameLocality ?? "No disponible");
+                    ReplaceTextInDocument(body, "locality", record.nameLocality == "Otros" ? "" : (record.nameLocality ?? "No disponible"));
                     ReplaceTextInDocument(body, "phone", record.numberPhone ?? "No disponible");
                     ReplaceTextInDocument(body, "weigth", record.netWeight.ToString());
                     ReplaceTextInDocument(body, "date", record.receivedDate.ToShortDateString());

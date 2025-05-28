@@ -1900,7 +1900,7 @@ namespace ResiGrass_API.Logic
                             SELECT c.""serial_number"", c.""receivedDate"", c.""endDate"", c.""fullPayment"", c.""priceUnit"", c.""netWeight"", 
                                    c.""observations"", c.""receivedFull"", c.""bowlEmpty"", c.""collectorId"", 
                                    c.""headquarterId"", c.""measureId"", c.""methodPaymentId"", c.""productId"", 
-                                   h.email, cl.""nameClient"", lo.""nameLocality"", h.""numberPhone""
+                                   h.email, cl.""nameClient"", lo.""nameLocality"", h.""numberPhone"", c.""id"", h.""nit_cc"", h.""address""
                             FROM collection c
                             INNER JOIN headquarter h ON c.""headquarterId"" = h.id
                             INNER JOIN client cl ON cl.id = h.""clientId""
@@ -1915,6 +1915,9 @@ namespace ResiGrass_API.Logic
                                 {
                                     var record = new RecolectionModel
                                     {
+                                        address = reader.GetString(20),
+                                        nitCc = reader.GetString(19),
+                                        id = reader.GetInt32(18),
                                         serial_number = reader.GetString(0),
                                         receivedDate = reader.GetDateTime(1),
                                         endDate = reader.GetDateTime(2),
