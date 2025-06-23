@@ -1703,33 +1703,33 @@ namespace ResiGrass_API.Logic
                 {
                     conn.Open();
 
-                    string query = @"
-                                SELECT 
-                                    subquery.WeekStart,
-                                    subquery.client,
-                                    subquery.TotalOil,
-                                    total_per_week.TotalOilAllWeeks
-                                FROM (
-                                    SELECT 
-                                        DATE_TRUNC('week', c.""receivedDate"") AS WeekStart,
-                                        cl.""nameClient"" || ' - ' || h.""nameHeadquarter"" AS client,
-                                        COALESCE(SUM(c.""netWeight""), 0) AS TotalOil
-                                    FROM collection c
-                                    INNER JOIN headquarter h ON c.""headquarterId"" = h.""id""
-                                    AND DATE(c.""receivedDate"") BETWEEN DATE(@startDate) AND DATE(@endDate)
-                                    INNER JOIN client cl ON h.""clientId"" = cl.id
-                                    WHERE h.""is_certified"" = B'1'
-                                    GROUP BY DATE_TRUNC('week', c.""receivedDate""), h.""nameHeadquarter"", cl.""nameClient"", h.""id"", cl.""id""
-                                ) AS subquery
-                                JOIN (
-                                    SELECT 
-                                        DATE_TRUNC('week', c.""receivedDate"") AS WeekStart,
-                                        COALESCE(SUM(c.""netWeight""), 0) AS TotalOilAllWeeks
-                                    FROM collection c
-                                    WHERE DATE(c.""receivedDate"") BETWEEN DATE(@startDate) AND DATE(@endDate)
-                                    GROUP BY DATE_TRUNC('week', c.""receivedDate"")
-                                ) AS total_per_week ON subquery.WeekStart = total_per_week.WeekStart
-                                ORDER BY subquery.WeekStart, subquery.client;";
+                    string query = @"SELECT 
+    subquery.WeekStart,
+    subquery.client,
+    subquery.TotalOil,
+    total_per_week.TotalOilAllWeeks
+FROM (
+    SELECT 
+        DATE_TRUNC('week', c.""receivedDate"") AS WeekStart,
+        cl.""nameClient"" || ' - ' || h.""nameHeadquarter"" AS client,
+        FLOOR(COALESCE(SUM(c.""netWeight""), 0))::INTEGER AS TotalOil
+    FROM collection c
+    INNER JOIN headquarter h ON c.""headquarterId"" = h.""id""
+        AND DATE(c.""receivedDate"") BETWEEN DATE(@startDate) AND DATE(@endDate)
+    INNER JOIN client cl ON h.""clientId"" = cl.id
+    WHERE h.""is_certified"" = B'1'
+    GROUP BY DATE_TRUNC('week', c.""receivedDate""), h.""nameHeadquarter"", cl.""nameClient"", h.""id"", cl.""id""
+) AS subquery
+JOIN (
+    SELECT 
+        DATE_TRUNC('week', c.""receivedDate"") AS WeekStart,
+        FLOOR(COALESCE(SUM(c.""netWeight""), 0))::INTEGER AS TotalOilAllWeeks
+    FROM collection c
+    WHERE DATE(c.""receivedDate"") BETWEEN DATE(@startDate) AND DATE(@endDate)
+    GROUP BY DATE_TRUNC('week', c.""receivedDate"")
+) AS total_per_week ON subquery.WeekStart = total_per_week.WeekStart
+ORDER BY subquery.WeekStart, subquery.client;
+";
 
                     using (var cmd = new NpgsqlCommand(query, conn))
                     {
