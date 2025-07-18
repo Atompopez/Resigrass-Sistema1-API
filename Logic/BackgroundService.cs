@@ -1,20 +1,21 @@
-﻿using ResiGrass_API.Models;
-using System.Text;
-using DocumentFormat.OpenXml;
+﻿using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml.Drawing;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
-using DocumentFormat.OpenXml.Drawing;
+using Resend;
+using ResiGrass_API.Models;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using System.Diagnostics;
+using System.Net.Mail;
+using System.Net.Mime;
+using System.Text;
 using A = DocumentFormat.OpenXml.Drawing;
 using DW = DocumentFormat.OpenXml.Drawing.Wordprocessing;
 using PIC = DocumentFormat.OpenXml.Drawing.Pictures;
 using WordprocessingParagraph = DocumentFormat.OpenXml.Wordprocessing.Paragraph;
 using WordprocessingRun = DocumentFormat.OpenXml.Wordprocessing.Run;
 using WordprocessingText = DocumentFormat.OpenXml.Wordprocessing.Text;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-using Resend;
-using System.Net.Mail;
-using System.Net.Mime;
 
 namespace ResiGrass_API.Logic
 {
@@ -90,7 +91,15 @@ namespace ResiGrass_API.Logic
                         continue;
                     }
 
-                    byte[] fileBytes = File.ReadAllBytes(filePath);
+                    // Convertir DOCX a PDF
+                    string pdfPath = await ConvertToPdfAsync(filePath);
+                    if (!File.Exists(pdfPath))
+                    {
+                        _logger.LogWarning($"No se pudo convertir el archivo a PDF para el registro con ID {record.id}.");
+                        continue;
+                    }
+
+                    byte[] fileBytes = File.ReadAllBytes(pdfPath);
 
                     var message = new EmailMessage
                     {
@@ -103,9 +112,9 @@ namespace ResiGrass_API.Logic
                         {
                             new EmailAttachment
                             {
-                                Filename = "Certificado.docx",
+                                Filename = "Certificado.pdf",
                                 Content = fileBytes,
-                                ContentType = MediaTypeNames.Application.Octet
+                                ContentType = MediaTypeNames.Application.Pdf
                             }
                         }
                     };
@@ -113,6 +122,7 @@ namespace ResiGrass_API.Logic
                     var response = await _resend.EmailSendAsync(message);
                     _logger.LogInformation($"Correo enviado a {record.email}. ID: {response.Content}");
                     await Task.Delay(1000); // Esperar 1 segundo entre envíos
+
                 }
                 catch (Exception ex)
                 {
@@ -122,6 +132,10 @@ namespace ResiGrass_API.Logic
                 {
                     if (!string.IsNullOrEmpty(filePath) && File.Exists(filePath))
                         File.Delete(filePath);
+
+                    string pdfPath = System.IO.Path.ChangeExtension(filePath, ".pdf");
+                    if (!string.IsNullOrEmpty(pdfPath) && File.Exists(pdfPath))
+                        File.Delete(pdfPath);
                 }
             }
         }
@@ -289,8 +303,8 @@ namespace ResiGrass_API.Logic
                     ReplaceTextInDocument(body, "locality", record.nameLocality == "Otros" ? "" : (record.nameLocality ?? "No disponible"));
                     ReplaceTextInDocument(body, "phone", record.numberPhone ?? "No disponible");
                     ReplaceTextInDocument(body, "weigth", record.netWeight.ToString());
-                    ReplaceTextInDocument(body, "date", record.receivedDate.ToShortDateString());
-                    ReplaceTextInDocument(body, "finish", record.endDate.ToShortDateString());
+                    ReplaceTextInDocument(body, "date", record.receivedDate.ToString("dd/MM/yyyy"));
+                    ReplaceTextInDocument(body, "finish", record.endDate.ToString("dd/MM/yyyy"));
 
                     // Guardar los cambios en el documento
                     wordDoc.MainDocumentPart.Document.Save();
@@ -327,6 +341,37 @@ namespace ResiGrass_API.Logic
             }
         }
         #endregion
+
+        public async Task<string> ConvertToPdfAsync(string docxPath)
+        {
+            var libreOfficeServiceUrl = "http://srv-captain--libreoffice:5000/convert";
+            var pdfPath = System.IO.Path.ChangeExtension(docxPath, ".pdf");
+
+            using var httpClient = new HttpClient();
+            using var form = new MultipartFormDataContent();
+
+            var fileBytes = await File.ReadAllBytesAsync(docxPath);
+            var fileContent = new ByteArrayContent(fileBytes);
+            fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+
+            form.Add(fileContent, "file", System.IO.Path.GetFileName(docxPath));
+
+            var response = await httpClient.PostAsync(libreOfficeServiceUrl, form);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                _logger.LogError($"Error al convertir PDF: {response.StatusCode} - {error}");
+                return null;
+            }
+
+            var pdfBytes = await response.Content.ReadAsByteArrayAsync();
+            await File.WriteAllBytesAsync(pdfPath, pdfBytes);
+
+            return pdfPath;
+        }
+
+
 
         #region CreateEmailBody
         private string CreateEmailBody(RecolectionModel record)
