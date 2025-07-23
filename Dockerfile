@@ -1,7 +1,7 @@
 # Usar .NET 8.0 SDK para construir la aplicación
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-env
 WORKDIR /app
-EXPOSE 5024
+EXPOSE 5023
 
 # Copiar el archivo del proyecto y restaurar las dependencias
 COPY ./ResiGrass-API.csproj ./ 

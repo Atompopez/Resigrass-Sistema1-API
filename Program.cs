@@ -98,6 +98,6 @@ app.UseStaticFiles();
 
 app.UseHttpsRedirection();
 app.MapControllers();
-app.Urls.Add("http://0.0.0.0:5024");
+app.Urls.Add("http://0.0.0.0:5023");
 
 app.Run();
