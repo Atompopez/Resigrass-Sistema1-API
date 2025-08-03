@@ -20,7 +20,8 @@ WORKDIR /app
 # No se requiere instalación de dependencias gráficas adicionales.
 
 # Copiar el archivo plantilla_certificado.docx al contenedor
-COPY ./Util/plantilla_certificado.docx /app/Util/plantilla_certificado.docx
+COPY ./Util/plantilla_certificado_manuel.docx /app/Util/plantilla_certificado_manuel.docx
+COPY ./Util/plantilla_certificado_mary.docx /app/Util/plantilla_certificado_mary.docx
 
 # Copiar la salida publicada y establecer el punto de entrada
 COPY --from=build-env /app/out ./ 
