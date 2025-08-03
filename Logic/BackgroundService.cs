@@ -284,7 +284,9 @@ namespace ResiGrass_API.Logic
         {
             try
             {
-                string templatePath = @"./Util/plantilla_certificado.docx";
+                string templatePath = record.partner == 1 ?
+                    @"./Util/plantilla_certificado_manuel.docx" :
+                    @"./Util/plantilla_certificado_mary.docx";
                 string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss_fff");
                 string outputPath = $@"./Util/Certificado_{timestamp}.docx";
 
@@ -305,6 +307,7 @@ namespace ResiGrass_API.Logic
                     ReplaceTextInDocument(body, "weigth", record.netWeight.ToString());
                     ReplaceTextInDocument(body, "date", record.receivedDate.ToString("dd/MM/yyyy"));
                     ReplaceTextInDocument(body, "finish", record.endDate.ToString("dd/MM/yyyy"));
+                    ReplaceTextInDocument(body, "razon", record.corporateName);
 
                     // Guardar los cambios en el documento
                     wordDoc.MainDocumentPart.Document.Save();

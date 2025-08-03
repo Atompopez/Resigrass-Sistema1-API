@@ -1900,7 +1900,7 @@ ORDER BY subquery.WeekStart, subquery.client;
                             SELECT c.""serial_number"", c.""receivedDate"", c.""endDate"", c.""fullPayment"", c.""priceUnit"", c.""netWeight"", 
                                    c.""observations"", c.""receivedFull"", c.""bowlEmpty"", c.""collectorId"", 
                                    c.""headquarterId"", c.""measureId"", c.""methodPaymentId"", c.""productId"", 
-                                   h.email, cl.""nameClient"", lo.""nameLocality"", h.""numberPhone"", c.""id"", h.""nit_cc"", h.""address""
+                                   h.email, cl.""nameClient"", lo.""nameLocality"", h.""numberPhone"", c.""id"", h.""nit_cc"", h.""address"", cl.""partner_id"", cl.""corporate_name""
                             FROM collection c
                             INNER JOIN headquarter h ON c.""headquarterId"" = h.id
                             INNER JOIN client cl ON cl.id = h.""clientId""
@@ -1915,6 +1915,8 @@ ORDER BY subquery.WeekStart, subquery.client;
                                 {
                                     var record = new RecolectionModel
                                     {
+                                        corporateName = reader.GetString(22),
+                                        partner = reader.GetInt32(21),
                                         address = reader.GetString(20),
                                         nitCc = reader.GetString(19),
                                         id = reader.GetInt32(18),
@@ -1997,7 +1999,9 @@ ORDER BY subquery.WeekStart, subquery.client;
                     h.""nit_cc"" AS ""nitCc"",
                     c.""serial_number"",
                     lo.""nameLocality"",
-                    h.signature_image
+                    h.signature_image,
+                    cl.partner_id,
+                    cl.corporate_name
                 FROM collection c
                 INNER JOIN headquarter h ON c.""headquarterId"" = h.""id""
                 INNER JOIN client cl ON h.""clientId"" = cl.""id""
@@ -2048,7 +2052,9 @@ ORDER BY subquery.WeekStart, subquery.client;
                                     nitCc = reader.GetString(reader.GetOrdinal("nitCc")), // NIT del cliente
                                     serial_number = reader.GetString(reader.GetOrdinal("serial_number")),
                                     nameLocality = reader.GetString(reader.GetOrdinal("nameLocality")),
-                                    signature_image = signatureImageBytes
+                                    signature_image = signatureImageBytes,
+                                    partner = reader.GetInt32(reader.GetOrdinal("partner_id")),
+                                    corporateName = reader.GetString(reader.GetOrdinal("corporate_name"))
                                 };
                             }
                         }
