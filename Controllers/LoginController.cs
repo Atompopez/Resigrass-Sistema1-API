@@ -58,7 +58,7 @@ namespace ResiGrass_API.Controllers
                 jwt.Issuer,
                 jwt.Audience,
                 claims,
-                expires: DateTime.Now.AddDays(1),
+                expires: DateTime.Now.AddDays(7),
                 signingCredentials: singIn
             );
 
