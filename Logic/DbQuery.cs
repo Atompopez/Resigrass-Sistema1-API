@@ -1533,11 +1533,11 @@ namespace ResiGrass_API.Logic
                 INSERT INTO collection (
                     ""receivedDate"", ""endDate"", ""fullPayment"", ""priceUnit"", ""netWeight"",
                     observations, ""receivedFull"", ""bowlEmpty"", ""collectorId"", 
-                    ""headquarterId"", ""measureId"", ""methodPaymentId"", ""productId"", ""serial_number"", ""number_collection"")
+                    ""headquarterId"", ""measureId"", ""methodPaymentId"", ""productId"", ""serial_number"", ""number_collection"", ""is_donation"")
                 VALUES (
                     @receivedDate, @endDate, @fullPayment, @priceUnit, @netWeight, 
                     @observations, @receivedFull, @bowlEmpty, @collectorId, 
-                    @headquarterId, @measureId, @methodPaymentId, @productId, @serialNumber, @number_collecion)
+                    @headquarterId, @measureId, @methodPaymentId, @productId, @serialNumber, @number_collecion, @isDonation)
                 RETURNING *";
 
                     using (var cmd = new NpgsqlCommand(query, conn))
@@ -1556,6 +1556,7 @@ namespace ResiGrass_API.Logic
                         cmd.Parameters.AddWithValue("@methodPaymentId", CollectionModel.methodPaymentId);
                         cmd.Parameters.AddWithValue("@productId", CollectionModel.productId);
                         cmd.Parameters.AddWithValue("@serialNumber", number);
+                        cmd.Parameters.AddWithValue("@isDonation", CollectionModel.isDonation);
                         cmd.Parameters.AddWithValue("@number_collecion", CollectionModel.number_collection);
 
                         using (var reader = cmd.ExecuteReader())
@@ -1577,6 +1578,7 @@ namespace ResiGrass_API.Logic
                                     measureId = reader.GetInt32(11),
                                     methodPaymentId = reader.GetInt32(12),
                                     productId = reader.GetInt32(13), 
+                                    isDonation = reader.GetBoolean(16)
                                 };
                                 Collection.Add(collection);
                             }
