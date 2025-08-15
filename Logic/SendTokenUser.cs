@@ -29,11 +29,11 @@ namespace ResiGrass_API.Logic
             {
                 try
                 {
-                    //var users = await _dbQuery.GetUsersToSendToken();
-                    //if (users != null && users.Any())
-                    //{
-                    //    await SendTokensAsync(users);
-                    //}
+                    var users = await _dbQuery.GetUsersToSendToken();
+                    if (users != null && users.Any())
+                    {
+                        await SendTokensAsync(users);
+                    }
                 }
                 catch (Exception ex)
                 {
