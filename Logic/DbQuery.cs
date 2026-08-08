@@ -30,7 +30,7 @@ namespace ResiGrass_API.Logic
             var conn = new NpgsqlConnection(_connectionString);
             conn.Open();
             var user = _httpContextAccessor.HttpContext?.User?.FindFirst("Username")?.Value ?? "unknown";
-            using (var cmd = new NpgsqlCommand("SET app.current_user = @user", conn))
+            using (var cmd = new NpgsqlCommand("SELECT set_config('app.current_user', @user, false)", conn))
             {
                 cmd.Parameters.AddWithValue("user", user);
                 cmd.ExecuteNonQuery();
