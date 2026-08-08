@@ -17,10 +17,25 @@ namespace ResiGrass_API.Logic
     public class DbQuery
     {
         private readonly string _connectionString;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public DbQuery(string connectionString)
+        public DbQuery(IHttpContextAccessor httpContextAccessor)
         {
-            _connectionString = connectionString;            
+            _connectionString = Globals.ConnectionString;
+            _httpContextAccessor = httpContextAccessor;
+        }
+
+        private NpgsqlConnection OpenAuditedConnection()
+        {
+            var conn = new NpgsqlConnection(_connectionString);
+            conn.Open();
+            var user = _httpContextAccessor.HttpContext?.User?.FindFirst("Username")?.Value ?? "unknown";
+            using (var cmd = new NpgsqlCommand("SET app.current_user = @user", conn))
+            {
+                cmd.Parameters.AddWithValue("user", user);
+                cmd.ExecuteNonQuery();
+            }
+            return conn;
         }
 
         #region GetNextNumber
@@ -28,9 +43,8 @@ namespace ResiGrass_API.Logic
         {
             try
             {
-                using (var conn = new NpgsqlConnection(_connectionString))
+                using (var conn = OpenAuditedConnection())
                 {
-                    conn.Open();
                     string query;
 
                     string prefix = is_certified ? "RS" : "ES";
@@ -67,9 +81,8 @@ namespace ResiGrass_API.Logic
 
             try
             {
-                using (var conn = new NpgsqlConnection(_connectionString))
+                using (var conn = OpenAuditedConnection())
                 {
-                    conn.Open();
 
                     using (var cmd = new NpgsqlCommand("SELECT * FROM municipality WHERE CAST(status AS INTEGER) != 0;", conn))
                     {
@@ -112,9 +125,8 @@ namespace ResiGrass_API.Logic
 
             try
             {
-                using (var conn = new NpgsqlConnection(_connectionString))
+                using (var conn = OpenAuditedConnection())
                 {
-                    conn.Open();
                     string query;
                     if (idMunicipality == 0)
                     {
@@ -176,9 +188,8 @@ namespace ResiGrass_API.Logic
 
             try
             {
-                using (var conn = new NpgsqlConnection(_connectionString))
+                using (var conn = OpenAuditedConnection())
                 {
-                    conn.Open();
                     string  query = "SELECT id, \"nameCollector\", \"numberPhoneCollector\", \"dateCreationCollector\", status, \"loginCollectorId\", \"typeCollectorId\", profile_image\r\n\tFROM resigrass.collector WHERE id = @id ";
 
 
@@ -230,9 +241,8 @@ namespace ResiGrass_API.Logic
 
             try
             {
-                using (var conn = new NpgsqlConnection(_connectionString))
+                using (var conn = OpenAuditedConnection())
                 {
-                    conn.Open();
 
                     using (var cmd = new NpgsqlCommand("SELECT * FROM \"typeBusiness\"", conn))
                     {
@@ -275,9 +285,8 @@ namespace ResiGrass_API.Logic
 
             try
             {
-                using (var conn = new NpgsqlConnection(_connectionString))
+                using (var conn = OpenAuditedConnection())
                 {
-                    conn.Open();
 
                     string query = @"
                       SELECT c.""id"", c.""nameClient"", c.""corporate_name"", c.""dateCreationClient"", 
@@ -353,9 +362,8 @@ namespace ResiGrass_API.Logic
 
             try
             {
-                using (var conn = new NpgsqlConnection(_connectionString))
+                using (var conn = OpenAuditedConnection())
                 {
-                    conn.Open();
                     string query;
 
                     if (IdClient == 0)
@@ -413,9 +421,8 @@ namespace ResiGrass_API.Logic
 
             try
             {
-                using (var conn = new NpgsqlConnection(_connectionString))
+                using (var conn = OpenAuditedConnection())
                 {
-                    conn.Open();
                     string query;
 
                     query = "SELECT * FROM partners";
@@ -454,9 +461,8 @@ namespace ResiGrass_API.Logic
 
             try
             {
-                using (var conn = new NpgsqlConnection(_connectionString))
+                using (var conn = OpenAuditedConnection())
                 {
-                    conn.Open();
                     string query = @"
             INSERT INTO ""client"" (""nameClient"", ""corporate_name"", ""dateCreationClient"", ""status"", ""typeBusinessId"", ""partner_id"")
             VALUES (@nameClient, @corporateName, @dateCreationClient, @status, @typeBusinessId, @partner)
@@ -506,9 +512,8 @@ namespace ResiGrass_API.Logic
 
             try
             {
-                using (var conn = new NpgsqlConnection(_connectionString))
+                using (var conn = OpenAuditedConnection())
                 {
-                    conn.Open();
                     string query = @"
                 INSERT INTO ""typeBusiness"" (""businessDescription"", ""status"")
                 VALUES (@businessDescription, @status)
@@ -553,9 +558,8 @@ namespace ResiGrass_API.Logic
 
             try
             {
-                using (var conn = new NpgsqlConnection(_connectionString))
+                using (var conn = OpenAuditedConnection())
                 {
-                    conn.Open();
                     string query = @"
             UPDATE ""client"" 
             SET 
@@ -616,9 +620,8 @@ namespace ResiGrass_API.Logic
 
             try
             {
-                using (var conn = new NpgsqlConnection(_connectionString))
+                using (var conn = OpenAuditedConnection())
                 {
-                    conn.Open();
                     string query;
 
                     if (clientId == 0 && idLocality == 0)
@@ -713,9 +716,8 @@ namespace ResiGrass_API.Logic
 
             try
             {
-                using (var conn = new NpgsqlConnection(_connectionString))
+                using (var conn = OpenAuditedConnection())
                 {
-                    conn.Open();
                     string query;
 
                     
@@ -791,9 +793,8 @@ namespace ResiGrass_API.Logic
 
             try
             {
-                using (var conn = new NpgsqlConnection(_connectionString))
+                using (var conn = OpenAuditedConnection())
                 {
-                    conn.Open();
                     string query = @"
                 INSERT INTO ""headquarter"" 
                 (""nameHeadquarter"", ""numberPhone"", ""address"", ""dateCreationHeadquarter"", ""status"", ""clientId"", ""localityId"", ""signature_image"", ""nit_cc"",""email"", ""is_certified"")
@@ -860,9 +861,8 @@ namespace ResiGrass_API.Logic
 
             try
             {
-                using (var conn = new NpgsqlConnection(_connectionString))
+                using (var conn = OpenAuditedConnection())
                 {
-                    conn.Open();
 
                     string query = @"
                 UPDATE ""headquarter"" 
@@ -976,9 +976,8 @@ namespace ResiGrass_API.Logic
         {
             try
             {
-                using (var conn = new NpgsqlConnection(_connectionString))
+                using (var conn = OpenAuditedConnection())
                 {
-                    conn.Open();
 
                     string query = @"
                 UPDATE ""headquarter"" 
@@ -1016,9 +1015,8 @@ namespace ResiGrass_API.Logic
 
             try
             {
-                using (var conn = new NpgsqlConnection(_connectionString))
+                using (var conn = OpenAuditedConnection())
                 {
-                    conn.Open();
                     string query;
 
                     query = @"select * from measure m 
@@ -1068,9 +1066,8 @@ namespace ResiGrass_API.Logic
 
             try
             {
-                using (var conn = new NpgsqlConnection(_connectionString))
+                using (var conn = OpenAuditedConnection())
                 {
-                    conn.Open();
                     string query;
 
                     query = "select * from \"methodPayment\" m WHERE m.status = B'1' ";
@@ -1118,9 +1115,8 @@ namespace ResiGrass_API.Logic
 
             try
             {
-                using (var conn = new NpgsqlConnection(_connectionString))
+                using (var conn = OpenAuditedConnection())
                 {
-                    conn.Open();
                     string query;
 
                     query = "select * from \"product\"";
@@ -1169,9 +1165,8 @@ namespace ResiGrass_API.Logic
 
             try
             {
-                using (var conn = new NpgsqlConnection(_connectionString))
+                using (var conn = OpenAuditedConnection())
                 {
-                    conn.Open();
                     string query;
 
                     query = "select * from \"typeCollector\"";
@@ -1219,9 +1214,8 @@ namespace ResiGrass_API.Logic
 
             try
             {
-                using (var conn = new NpgsqlConnection(_connectionString))
+                using (var conn = OpenAuditedConnection())
                 {
-                    conn.Open();
 
                     
                     string queryLogin = @"
@@ -1302,9 +1296,8 @@ namespace ResiGrass_API.Logic
         {
             try
             {
-                using (var conn = new NpgsqlConnection(_connectionString))
+                using (var conn = OpenAuditedConnection())
                 {
-                    conn.Open();
 
                     // Construir la parte SET de la consulta dinámicamente
                     var setClauses = new List<string>
@@ -1382,9 +1375,8 @@ namespace ResiGrass_API.Logic
 
             try
             {
-                using (var conn = new NpgsqlConnection(_connectionString))
+                using (var conn = OpenAuditedConnection())
                 {
-                    conn.Open();
 
                     string queryCheckUser = "SELECT * FROM \"loginCollector\" WHERE \"user\" = @user";
                     using (var cmdCheckUser = new NpgsqlCommand(queryCheckUser, conn))
@@ -1605,9 +1597,8 @@ namespace ResiGrass_API.Logic
 
             try
             {
-                using (var conn = new NpgsqlConnection(_connectionString))
+                using (var conn = OpenAuditedConnection())
                 {
-                    conn.Open();
 
                     string query = @"
             SELECT 
@@ -1701,9 +1692,8 @@ namespace ResiGrass_API.Logic
                 startDate = startDate.Date;
                 endDate = endDate.Date;
 
-                using (var conn = new NpgsqlConnection(_connectionString))
+                using (var conn = OpenAuditedConnection())
                 {
-                    conn.Open();
 
                     string query = @"SELECT 
     subquery.WeekStart,
@@ -1805,9 +1795,8 @@ ORDER BY subquery.WeekStart, subquery.client;
 
             try
             {
-                using (var conn = new NpgsqlConnection(_connectionString))
+                using (var conn = OpenAuditedConnection())
                 {
-                    conn.Open();
 
                     string query = @"
                 UPDATE collection
@@ -1843,9 +1832,8 @@ ORDER BY subquery.WeekStart, subquery.client;
 
             try
             {
-                using (var conn = new NpgsqlConnection(_connectionString))
+                using (var conn = OpenAuditedConnection())
                 {
-                    conn.Open();
 
                     string query = @"
                                     SELECT id, ""nameCollector"", ""numberPhoneCollector"", ""dateCreationCollector"", status, ""loginCollectorId"", ""typeCollectorId"", profile_image
@@ -1892,9 +1880,8 @@ ORDER BY subquery.WeekStart, subquery.client;
 
             try
             {
-                using (var conn = new NpgsqlConnection(_connectionString))
+                using (var conn = OpenAuditedConnection())
                 {
-                    conn.Open();
 
                     using (var transaction = conn.BeginTransaction())
                     {
@@ -1974,9 +1961,8 @@ ORDER BY subquery.WeekStart, subquery.client;
         {
             try
             {
-                using (var conn = new NpgsqlConnection(_connectionString))
+                using (var conn = OpenAuditedConnection())
                 {
-                    conn.Open();
 
                     string query = @"
                 SELECT 
@@ -2075,9 +2061,8 @@ ORDER BY subquery.WeekStart, subquery.client;
         {
             try
             {
-                using (var conn = new NpgsqlConnection(_connectionString))
+                using (var conn = OpenAuditedConnection())
                 {
-                    conn.Open();
 
                     string updateQuery = "UPDATE collection SET is_sent = B'1' WHERE id = @id";
 
@@ -2102,9 +2087,8 @@ ORDER BY subquery.WeekStart, subquery.client;
             string hashedPassword;
             try
             {
-                using (var conn = new NpgsqlConnection(_connectionString))
+                using (var conn = OpenAuditedConnection())
                 {
-                    conn.Open();
 
                     // Primero insertar en la tabla loginCollector
                     string query = @"
@@ -2181,9 +2165,8 @@ ORDER BY subquery.WeekStart, subquery.client;
             var response = new LoginResponse();
             try
             {
-                using (var conn = new NpgsqlConnection(_connectionString))
+                using (var conn = OpenAuditedConnection())
                 {
-                    conn.Open();
                     string queryCheckUser = "SELECT * FROM \"adminUsers\" WHERE \"user\" = @user";
                     using (var cmdCheckUser = new NpgsqlCommand(queryCheckUser, conn))
                     {
@@ -2239,9 +2222,8 @@ ORDER BY subquery.WeekStart, subquery.client;
         {
             try
             {
-                using (var conn = new NpgsqlConnection(_connectionString))
+                using (var conn = OpenAuditedConnection())
                 {
-                    conn.Open();
                     string queryCheckUser = @"WITH last_sent AS (
                                                   SELECT id
                                                   FROM whatsapp_number
@@ -2288,9 +2270,8 @@ ORDER BY subquery.WeekStart, subquery.client;
         {
             try
             {
-                using (var conn = new NpgsqlConnection(_connectionString))
+                using (var conn = OpenAuditedConnection())
                 {
-                    conn.Open();
                     string queryCheckUser = @"SELECT pin FROM pin_collector
                                                 WHERE id_collector = @idUser";
 
@@ -2319,9 +2300,8 @@ ORDER BY subquery.WeekStart, subquery.client;
         {
             try
             {
-                using (var conn = new NpgsqlConnection(_connectionString))
+                using (var conn = OpenAuditedConnection())
                 {
-                    conn.Open();
                     string queryCheckUser = @"SELECT 
 	                                            profile_image, 
 	                                            ""nameCollector"", 
@@ -2362,9 +2342,8 @@ ORDER BY subquery.WeekStart, subquery.client;
         {
             try
             {
-                using (var conn = new NpgsqlConnection(_connectionString))
+                using (var conn = OpenAuditedConnection())
                 {
-                    conn.Open();
 
                     string query = @"UPDATE pin_collector
                                         SET pin = @token, 
@@ -2396,9 +2375,8 @@ ORDER BY subquery.WeekStart, subquery.client;
             List<DataUpdateToken> users = new List<DataUpdateToken>();
             try
             {
-                using (var conn = new NpgsqlConnection(_connectionString))
+                using (var conn = OpenAuditedConnection())
                 {
-                    conn.Open();
                     string queryCheckUser = @"SELECT c.id, CAST(p.pin AS TEXT) AS token, c.email
                                                 FROM pin_collector p
                                                 INNER JOIN collector c ON p.id_collector = c.id";
@@ -2434,9 +2412,8 @@ ORDER BY subquery.WeekStart, subquery.client;
             var isCertified = false;
             try
             {
-                using (var conn = new NpgsqlConnection(_connectionString))
+                using (var conn = OpenAuditedConnection())
                 {
-                    conn.Open();
                     string query;
 
                     query = $"select is_certified from headquarter h where h.id = {IdHeadquarter}";

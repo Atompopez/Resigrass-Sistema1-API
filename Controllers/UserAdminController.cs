@@ -50,7 +50,7 @@ namespace ResiGrass_API.Controllers
 
             AuthController Auth = new AuthController();
             UserCredentials crede = new UserCredentials();
-            crede.Username = "resigrass";
+            crede.Username = requestModel.user;
             string token = Auth.GenerateJwtToken(crede.Username);
             return Ok(new { message = response.Message, data = response.Collectors, Token = token });
         }
